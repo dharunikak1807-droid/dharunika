@@ -18,4 +18,6 @@ public interface JobRepository extends JpaRepository<Job, Long> {
 
     long countByActive(boolean active);
 
+    List<Job> findTop5ByOrderByCreatedAtDesc();
 }
+

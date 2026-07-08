@@ -5,6 +5,7 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 
 import com.example.demo.Entity.Application;
+import com.example.demo.Entity.ApplicationStatus;
 import com.example.demo.Entity.User;
 import com.example.demo.Entity.Job;
 import com.example.demo.Repository.ApplicationRepository;
@@ -50,4 +51,21 @@ public class ApplicationService {
                 .orElseThrow(() -> new RuntimeException("User not found"));
         return applicationRepository.findBySeekerId(seeker.getId());
     }
-}
+
+    @Transactional
+    public List<Application> getApplicationsByJob(Long jobId) {
+        return applicationRepository.findByJobId(jobId);
+    }
+
+    @Transactional
+    public Application updateStatus(Long applicationId, String status) {
+        Application app = applicationRepository.findById(applicationId)
+                .orElseThrow(() -> new RuntimeException("Application not found: " + applicationId));
+        try {
+            app.setStatus(ApplicationStatus.valueOf(status.toUpperCase()));
+        } catch (IllegalArgumentException e) {
+            throw new RuntimeException("Invalid status: " + status);
+        }
+        return applicationRepository.save(app);
+    }
+}

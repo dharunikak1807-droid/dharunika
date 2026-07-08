@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Jobs — HireSphere Admin</title>
+    <meta name="description" content="Admin job management — view and delete platform jobs.">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <link href="css/style.css" rel="stylesheet">
+</head>
+<body>
+
+    <div id="hs-navbar"></div>
+
+    <div class="hs-admin-layout">
+
+        <!-- Sidebar -->
+        <aside class="hs-admin-sidebar">
+            <div class="sidebar-brand">
+                <div class="d-flex align-items-center gap-2 mb-1">
+                    <div style="width:32px;height:32px;background:linear-gradient(135deg,#4361ee,#7b2ff7);border-radius:8px;display:flex;align-items:center;justify-content:center;">
+                        <i class="bi bi-shield-check text-white" style="font-size:0.9rem;"></i>
+                    </div>
+                    <span class="text-white fw-bold">Admin Console</span>
+                </div>
+                <span>HireSphere Platform</span>
+            </div>
+            <div class="hs-admin-nav-section">Overview</div>
+            <a href="dashboard-admin.html" class="hs-admin-nav-link"><i class="bi bi-speedometer2"></i> Dashboard</a>
+            <div class="hs-admin-nav-section">Management</div>
+            <a href="admin-users.html" class="hs-admin-nav-link"><i class="bi bi-people"></i> Users</a>
+            <a href="admin-jobs.html" class="hs-admin-nav-link active"><i class="bi bi-briefcase"></i> Jobs</a>
+            <a href="admin-applications.html" class="hs-admin-nav-link"><i class="bi bi-file-earmark-text"></i> Applications</a>
+            <div class="hs-admin-nav-section">Quick Links</div>
+            <a href="jobs.html" class="hs-admin-nav-link" target="_blank"><i class="bi bi-box-arrow-up-right"></i> Job Board</a>
+            <a href="#" class="hs-admin-nav-link" onclick="Auth.logout()"><i class="bi bi-box-arrow-right"></i> Logout</a>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="hs-admin-content">
+            <div class="d-flex align-items-center justify-content-between mb-4">
+                <div>
+                    <h1 class="h4 fw-bold mb-0">Job Management</h1>
+                    <p class="text-muted mb-0" style="font-size:0.88rem;">
+                        View and delete active or inappropriate job listings
+                    </p>
+                </div>
+            </div>
+
+            <!-- Search & Filter -->
+            <div class="hs-search-bar d-flex gap-2 flex-wrap mb-3">
+                <input type="text" class="form-control" id="search-jobs"
+                       placeholder="Search by title, company, skills, or location..." oninput="filterJobs()">
+            </div>
+
+            <!-- Jobs Table -->
+            <div class="hs-card p-0 overflow-hidden">
+                <div class="table-responsive">
+                    <table class="table hs-table mb-0">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Job Title</th>
+                                <th>Employer / Company</th>
+                                <th>Location</th>
+                                <th>Salary (Annual)</th>
+                                <th>Experience</th>
+                                <th>Skills</th>
+                                <th class="text-end">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="jobs-table-body">
+                            <tr>
+                                <td colspan="8" class="text-center py-4 text-muted">
+                                    <div class="spinner-border spinner-border-sm text-primary me-2"></div>
+                                    Loading jobs...
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="mt-2 text-muted" style="font-size:0.85rem;">
+                Showing <span id="jobs-count">0</span> jobs
+            </div>
+        </main>
+    </div>
+
+    <footer class="hs-footer">
+        <div class="container">
+            <p class="mb-0">&copy; 2026 <strong>HireSphere</strong>. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="js/config.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/auth.js"></script>
+    <script>
+        let allJobs = [];
+
+        document.addEventListener('DOMContentLoaded', () => {
+            if (!Auth.requireRole('ADMIN')) return;
+            Auth.renderNavbar();
+            loadJobs();
+        });
+
+        async function loadJobs() {
+            showLoader();
+            const res = await API.get('/api/admin/jobs');
+            hideLoader();
+
+            if (!res.ok) {
+                showToast(res.error || 'Failed to load jobs', 'error');
+                return;
+            }
+
+            allJobs = res.data || [];
+            renderJobs(allJobs);
+        }
+
+        function filterJobs() {
+            const query  = document.getElementById('search-jobs').value.toLowerCase();
+
+            const filtered = allJobs.filter(j => {
+                const employerName = j.employer ? (j.employer.fullName || j.employer.username) : '';
+                const companyName = (j.employer && j.employer.profile) ? (j.employer.profile.companyName || '') : '';
+                return !query ||
+                    (j.title || '').toLowerCase().includes(query) ||
+                    employerName.toLowerCase().includes(query) ||
+                    companyName.toLowerCase().includes(query) ||
+                    (j.location || '').toLowerCase().includes(query) ||
+                    (j.requiredSkills || '').toLowerCase().includes(query);
+            });
+            renderJobs(filtered);
+        }
+
+        function renderJobs(jobs) {
+            const tbody = document.getElementById('jobs-table-body');
+            document.getElementById('jobs-count').textContent = jobs.length;
+
+            if (jobs.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="8" class="text-center py-5 text-muted">
+                    <i class="bi bi-briefcase" style="font-size:2rem;display:block;margin-bottom:.5rem;"></i>
+                    No jobs found.</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = jobs.map(j => {
+                const employerName = j.employer ? (j.employer.fullName || j.employer.username) : '—';
+                const companyName = (j.employer && j.employer.profile && j.employer.profile.companyName)
+                    ? j.employer.profile.companyName
+                    : '';
+                const displayEmployer = companyName ? `${escapeHtml(companyName)} (${escapeHtml(employerName)})` : escapeHtml(employerName);
+
+                return `
+                <tr>
+                    <td class="text-muted" style="font-size:0.82rem;">${j.id}</td>
+                    <td><div class="fw-semibold">${escapeHtml(j.title)}</div></td>
+                    <td>${displayEmployer}</td>
+                    <td><i class="bi bi-geo-alt text-muted me-1"></i>${escapeHtml(j.location || 'Remote')}</td>
+                    <td>${formatSalary(j.salary)}</td>
+                    <td>${j.experienceRequired != null ? j.experienceRequired + ' yrs' : 'Any'}</td>
+                    <td>${renderSkillTags(j.requiredSkills)}</td>
+                    <td class="text-end">
+                        <button class="btn btn-action btn-action-delete" onclick="deleteJob(${j.id})" title="Delete Job">
+                            <i class="bi bi-trash"></i> Delete
+                        </button>
+                    </td>
+                </tr>`;
+            }).join('');
+        }
+
+        async function deleteJob(jobId) {
+            if (!confirm('Are you sure you want to delete this job listing? This will also delete any applications for it.')) return;
+
+            const res = await API.delete(`/api/admin/jobs/${jobId}`);
+            if (res.ok) {
+                showToast('Job deleted successfully', 'success');
+                loadJobs();
+            } else {
+                showToast(res.error || 'Failed to delete job', 'error');
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Users — HireSphere Admin</title>
+    <meta name="description" content="Admin user management — view, add, edit, block and delete platform users.">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <link href="css/style.css" rel="stylesheet">
+</head>
+<body>
+
+    <div id="hs-navbar"></div>
+
+    <div class="hs-admin-layout">
+
+        <!-- Sidebar -->
+        <aside class="hs-admin-sidebar">
+            <div class="sidebar-brand">
+                <div class="d-flex align-items-center gap-2 mb-1">
+                    <div style="width:32px;height:32px;background:linear-gradient(135deg,#4361ee,#7b2ff7);border-radius:8px;display:flex;align-items:center;justify-content:center;">
+                        <i class="bi bi-shield-check text-white" style="font-size:0.9rem;"></i>
+                    </div>
+                    <span class="text-white fw-bold">Admin Console</span>
+                </div>
+                <span>HireSphere Platform</span>
+            </div>
+            <div class="hs-admin-nav-section">Overview</div>
+            <a href="dashboard-admin.html" class="hs-admin-nav-link"><i class="bi bi-speedometer2"></i> Dashboard</a>
+            <div class="hs-admin-nav-section">Management</div>
+            <a href="admin-users.html" class="hs-admin-nav-link active"><i class="bi bi-people"></i> Users</a>
+            <a href="admin-jobs.html" class="hs-admin-nav-link"><i class="bi bi-briefcase"></i> Jobs</a>
+            <a href="admin-applications.html" class="hs-admin-nav-link"><i class="bi bi-file-earmark-text"></i> Applications</a>
+            <div class="hs-admin-nav-section">Quick Links</div>
+            <a href="jobs.html" class="hs-admin-nav-link" target="_blank"><i class="bi bi-box-arrow-up-right"></i> Job Board</a>
+            <a href="#" class="hs-admin-nav-link" onclick="Auth.logout()"><i class="bi bi-box-arrow-right"></i> Logout</a>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="hs-admin-content">
+            <div class="d-flex align-items-center justify-content-between mb-4">
+                <div>
+                    <h1 class="h4 fw-bold mb-0">User Management</h1>
+                    <p class="text-muted mb-0" style="font-size:0.88rem;">
+                        View, add, edit, block/unblock, and delete platform users
+                    </p>
+                </div>
+                <button class="btn hs-btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#userModal"
+                        onclick="openCreateModal()">
+                    <i class="bi bi-person-plus me-1"></i> Add User
+                </button>
+            </div>
+
+            <!-- Search & Filter -->
+            <div class="hs-search-bar d-flex gap-2 flex-wrap mb-3">
+                <input type="text" class="form-control" id="search-users"
+                       placeholder="Search by name, username, or role..." oninput="filterUsers()">
+                <select class="form-select" style="max-width:160px;" id="role-filter" onchange="filterUsers()">
+                    <option value="">All Roles</option>
+                    <option value="ADMIN">Admin</option>
+                    <option value="EMPLOYER">Employer</option>
+                    <option value="JOB_SEEKER">Job Seeker</option>
+                </select>
+            </div>
+
+            <!-- Users Table -->
+            <div class="hs-card p-0 overflow-hidden">
+                <div class="table-responsive">
+                    <table class="table hs-table mb-0">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Name</th>
+                                <th>Username</th>
+                                <th>Role</th>
+                                <th>Status</th>
+                                <th class="text-end">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="users-table-body">
+                            <tr>
+                                <td colspan="6" class="text-center py-4 text-muted">
+                                    <div class="spinner-border spinner-border-sm text-primary me-2"></div>
+                                    Loading users...
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="mt-2 text-muted" style="font-size:0.85rem;">
+                Showing <span id="users-count">0</span> users
+            </div>
+        </main>
+    </div>
+
+    <!-- User Modal (Create / Edit) -->
+    <div class="modal fade" id="userModal" tabindex="-1" aria-labelledby="userModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="userModalLabel">Add New User</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <form id="user-form" onsubmit="handleUserSubmit(event)" novalidate>
+                    <div class="modal-body">
+                        <input type="hidden" id="user-edit-id">
+                        <div class="mb-3">
+                            <label class="form-label">Full Name</label>
+                            <input type="text" class="form-control" id="u-fullName" placeholder="Priya Sharma" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Username</label>
+                            <input type="text" class="form-control" id="u-username" placeholder="priya.sharma" required>
+                        </div>
+                        <div class="mb-3" id="u-password-group">
+                            <label class="form-label">Password</label>
+                            <input type="password" class="form-control" id="u-password" placeholder="Min 6 characters">
+                            <small class="text-muted" id="u-password-hint"></small>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Role</label>
+                            <select class="form-select" id="u-role" required>
+                                <option value="JOB_SEEKER">Job Seeker</option>
+                                <option value="EMPLOYER">Employer</option>
+                                <option value="ADMIN">Admin</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Company Name (Employers only)</label>
+                            <input type="text" class="form-control" id="u-company" placeholder="Acme Corp">
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn hs-btn-primary" id="user-submit-btn">Save User</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <footer class="hs-footer">
+        <div class="container">
+            <p class="mb-0">&copy; 2026 <strong>HireSphere</strong>. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="js/config.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/auth.js"></script>
+    <script>
+        let allUsers = [];
+
+        document.addEventListener('DOMContentLoaded', () => {
+            if (!Auth.requireRole('ADMIN')) return;
+            Auth.renderNavbar();
+            loadUsers();
+        });
+
+        async function loadUsers() {
+            showLoader();
+            const res = await API.get('/api/admin/users');
+            hideLoader();
+
+            if (!res.ok) {
+                showToast(res.error || 'Failed to load users', 'error');
+                return;
+            }
+
+            allUsers = res.data || [];
+            renderUsers(allUsers);
+        }
+
+        function filterUsers() {
+            const query  = document.getElementById('search-users').value.toLowerCase();
+            const role   = document.getElementById('role-filter').value;
+
+            const filtered = allUsers.filter(u => {
+                const matchSearch = !query ||
+                    (u.fullName  || '').toLowerCase().includes(query) ||
+                    (u.username  || '').toLowerCase().includes(query) ||
+                    (u.role      || '').toLowerCase().includes(query);
+                const matchRole = !role || u.role === role;
+                return matchSearch && matchRole;
+            });
+            renderUsers(filtered);
+        }
+
+        const ROLE_STYLE = {
+            ADMIN:      { cls: 'role-badge-admin',    label: 'Admin',      icon: 'shield-check' },
+            EMPLOYER:   { cls: 'role-badge-employer', label: 'Employer',   icon: 'building' },
+            JOB_SEEKER: { cls: 'role-badge-seeker',   label: 'Job Seeker', icon: 'person-workspace' }
+        };
+
+        function renderUsers(users) {
+            const tbody = document.getElementById('users-table-body');
+            document.getElementById('users-count').textContent = users.length;
+
+            if (users.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" class="text-center py-5 text-muted">
+                    <i class="bi bi-people" style="font-size:2rem;display:block;margin-bottom:.5rem;"></i>
+                    No users found.</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = users.map((u, i) => {
+                const rs = ROLE_STYLE[u.role] || { cls: '', label: u.role, icon: 'person' };
+                const blockedBadge = u.blocked
+                    ? '<span class="badge bg-danger ms-1" style="font-size:0.68rem;">Blocked</span>'
+                    : '<span class="badge bg-success ms-1" style="font-size:0.68rem;">Active</span>';
+
+                return `
+                <tr>
+                    <td class="text-muted" style="font-size:0.82rem;">${u.id}</td>
+                    <td>
+                        <div class="fw-semibold">${escapeHtml(u.fullName || '—')}</div>
+                    </td>
+                    <td class="text-muted">@${escapeHtml(u.username)}</td>
+                    <td>
+                        <span class="badge ${rs.cls} px-2 py-1" style="font-size:0.75rem;">
+                            <i class="bi bi-${rs.icon} me-1"></i>${rs.label}
+                        </span>
+                    </td>
+                    <td>${blockedBadge}</td>
+                    <td class="text-end">
+                        <div class="d-flex gap-1 justify-content-end">
+                            <button class="btn btn-action btn-action-edit" onclick="openEditModal(${u.id})" title="Edit">
+                                <i class="bi bi-pencil"></i>
+                            </button>
+                            <button class="btn btn-action ${u.blocked ? 'btn-action-unblock' : 'btn-action-block'}"
+                                    onclick="toggleBlock(${u.id})"
+                                    title="${u.blocked ? 'Unblock' : 'Block'}">
+                                <i class="bi bi-${u.blocked ? 'unlock' : 'slash-circle'}"></i>
+                            </button>
+                            <button class="btn btn-action btn-action-delete" onclick="deleteUser(${u.id})"
+                                    title="Delete" ${u.role === 'ADMIN' ? 'disabled' : ''}>
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>`;
+            }).join('');
+        }
+
+        function openCreateModal() {
+            document.getElementById('userModalLabel').textContent = 'Add New User';
+            document.getElementById('user-edit-id').value = '';
+            document.getElementById('user-form').reset();
+            document.getElementById('u-username').readOnly = false;
+            document.getElementById('u-password-hint').textContent = 'Required for new users.';
+            clearValidation('user-form');
+        }
+
+        function openEditModal(userId) {
+            const u = allUsers.find(x => x.id === userId);
+            if (!u) return;
+
+            document.getElementById('userModalLabel').textContent = 'Edit User';
+            document.getElementById('user-edit-id').value = u.id;
+            document.getElementById('u-fullName').value   = u.fullName || '';
+            document.getElementById('u-username').value   = u.username || '';
+            document.getElementById('u-username').readOnly = true;
+            document.getElementById('u-role').value       = u.role || 'JOB_SEEKER';
+            document.getElementById('u-password').value   = '';
+            document.getElementById('u-password-hint').textContent = 'Leave blank to keep current password.';
+
+            clearValidation('user-form');
+            new bootstrap.Modal(document.getElementById('userModal')).show();
+        }
+
+        async function handleUserSubmit(e) {
+            e.preventDefault();
+
+            const editId    = document.getElementById('user-edit-id').value;
+            const fullName  = document.getElementById('u-fullName').value.trim();
+            const username  = document.getElementById('u-username').value.trim();
+            const password  = document.getElementById('u-password').value.trim();
+            const role      = document.getElementById('u-role').value;
+            const company   = document.getElementById('u-company').value.trim();
+
+            if (!editId && !password) {
+                showToast('Password is required for new users', 'error');
+                return;
+            }
+
+            if (!validateRequired([
+                { id: 'u-fullName', name: 'Full Name' },
+                { id: 'u-username', name: 'Username' }
+            ])) return;
+
+            const btn = document.getElementById('user-submit-btn');
+            setBtnLoading(btn, true);
+
+            const payload = { fullName, username, role, companyName: company };
+            if (password) payload.password = password;
+
+            let res;
+            if (editId) {
+                res = await API.put(`/api/admin/users/${editId}`, payload);
+            } else {
+                res = await API.post('/api/admin/users', payload);
+            }
+
+            setBtnLoading(btn, false);
+
+            if (res.ok) {
+                showToast(editId ? 'User updated successfully!' : 'User created successfully!', 'success');
+                bootstrap.Modal.getInstance(document.getElementById('userModal')).hide();
+                loadUsers();
+            } else {
+                showToast(res.error || 'Failed to save user', 'error');
+            }
+        }
+
+        async function toggleBlock(userId) {
+            const user = allUsers.find(u => u.id === userId);
+            const action = user && user.blocked ? 'unblock' : 'block';
+            if (!confirm(`Are you sure you want to ${action} this user?`)) return;
+
+            const res = await API.put(`/api/admin/users/${userId}/block`, {});
+            if (res.ok) {
+                showToast(res.data.message || 'Status updated', 'success');
+                loadUsers();
+            } else {
+                showToast(res.error || 'Failed to update status', 'error');
+            }
+        }
+
+        async function deleteUser(userId) {
+            if (!confirm('Permanently delete this user? All their data will be removed.')) return;
+
+            const res = await API.delete(`/api/admin/users/${userId}`);
+            if (res.ok) {
+                showToast('User deleted successfully', 'success');
+                loadUsers();
+            } else {
+                showToast(res.error || 'Failed to delete user', 'error');
+            }
+        }
+    </script>
+</body>
+</html>

@@ -82,7 +82,7 @@
                             <input type="tel" class="form-control" id="app-phone" required>
                         </div>
                         <div class="mb-3">
-                            <label for="app-skills" class="form-label">Skills (Comma separated)</label>
+                            <label for="app-skills" class="form-label">Skills</label>
                             <input type="text" class="form-control" id="app-skills" placeholder="Java, Spring Boot, MySQL" required>
                         </div>
                         <div class="mb-3">
@@ -259,7 +259,6 @@
             const skills = document.getElementById('app-skills').value.trim();
             const experience = document.getElementById('app-experience').value.trim();
             const resumeUrl = document.getElementById('app-resumeUrl').value.trim();
-            const expectedSalary = document.getElementById('app-expectedSalary').value.trim();
             const noticePeriod = document.getElementById('app-noticePeriod').value;
             const coverLetter = document.getElementById('app-coverLetter').value.trim();
 
@@ -269,8 +268,8 @@
                 { id: 'app-phone', name: 'Phone Number' },
                 { id: 'app-skills', name: 'Skills' },
                 { id: 'app-experience', name: 'Experience' },
-                { id: 'app-resumeUrl', name: 'Resume URL' },
-                { id: 'app-expectedSalary', name: 'Expected Salary' }
+                { id: 'app-resumeUrl', name: 'Resume URL' }
+                
             ])) return;
 
             if (!validateEmail(email)) {
@@ -302,7 +301,6 @@
                 experience: parseInt(experience, 10),
                 resumeUrl,
                 coverLetter,
-                expectedSalary: parseFloat(expectedSalary),
                 noticePeriod,
                 job: { id: parseInt(jobId, 10) },
                 seeker: userId ? { id: parseInt(userId, 10) } : null

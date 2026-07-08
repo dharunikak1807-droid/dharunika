@@ -89,6 +89,10 @@ public class AuthService {
         User user = userRepository.findByUsername(request.getUsername())
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
+        if (user.isBlocked()) {
+            throw new org.springframework.security.authentication.LockedException("Your account has been blocked. Please contact system admin.");
+        }
+
         String token = jwtUtil.generateToken(user);
 
         return new AuthResponse(

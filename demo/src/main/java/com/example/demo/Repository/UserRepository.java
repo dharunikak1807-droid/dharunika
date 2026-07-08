@@ -1,5 +1,6 @@
 package com.example.demo.Repository;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -16,4 +17,8 @@ public interface UserRepository extends JpaRepository<User, Long> {
     long countByRole(Role role);
 
     long countByBlocked(boolean blocked);
+
+    List<User> findTop5ByOrderByIdDesc();
+
+    List<User> findByRole(Role role);
 }

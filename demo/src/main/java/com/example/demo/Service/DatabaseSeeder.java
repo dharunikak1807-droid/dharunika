@@ -3,12 +3,17 @@ package com.example.demo.Service;
 import com.example.demo.Entity.*;
 import com.example.demo.Repository.*;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.context.annotation.Profile;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
+import java.util.Random;
 
+@Profile("!test")
 @Component
 public class DatabaseSeeder implements CommandLineRunner {
 
@@ -30,209 +35,370 @@ public class DatabaseSeeder implements CommandLineRunner {
         this.passwordEncoder = passwordEncoder;
     }
 
+    private Date daysAgo(int days) {
+        Calendar c = Calendar.getInstance();
+        c.add(Calendar.DAY_OF_YEAR, -days);
+        return c.getTime();
+    }
+
     @Override
     public void run(String... args) throws Exception {
-        if (userRepository.count() == 0) {
-            System.out.println("Seeding database with sample data according to SRS...");
-
-            // 1. Create ADMIN User
-            User admin = new User();
-            admin.setUsername("admin");
-            admin.setPassword(passwordEncoder.encode("admin123"));
-            admin.setFullName("System Administrator");
-            admin.setRole(Role.ADMIN);
-            admin = userRepository.save(admin);
-
-            UserProfile adminProfile = new UserProfile();
-            adminProfile.setUser(admin);
-            adminProfile.setAbout("Global system administrator for Hirespere platform.");
-            profileRepository.save(adminProfile);
-
-            // 2. Create EMPLOYER Users
-            // Employer 1
-            User employer1 = new User();
-            employer1.setUsername("employer");
-            employer1.setPassword(passwordEncoder.encode("employer123"));
-            employer1.setFullName("Global Tech Solutions Ltd");
-            employer1.setRole(Role.EMPLOYER);
-            employer1 = userRepository.save(employer1);
-
-            UserProfile emp1Profile = new UserProfile();
-            emp1Profile.setUser(employer1);
-            emp1Profile.setCompanyName("Global Tech Solutions");
-            emp1Profile.setAbout("Global Tech Solutions is a world-class IT services and consulting provider.");
-            profileRepository.save(emp1Profile);
-
-            // Employer 2
-            User employer2 = new User();
-            employer2.setUsername("employer2");
-            employer2.setPassword(passwordEncoder.encode("employer123"));
-            employer2.setFullName("Innovate Softwares");
-            employer2.setRole(Role.EMPLOYER);
-            employer2 = userRepository.save(employer2);
-
-            UserProfile emp2Profile = new UserProfile();
-            emp2Profile.setUser(employer2);
-            emp2Profile.setCompanyName("Innovate Softwares");
-            emp2Profile.setAbout("Innovate Softwares specializes in AI, cloud-native enterprise products, and design.");
-            profileRepository.save(emp2Profile);
-
-            // 3. Create JOB_SEEKER Users
-            // Seeker 1
-            User seeker1 = new User();
-            seeker1.setUsername("seeker");
-            seeker1.setPassword(passwordEncoder.encode("seeker123"));
-            seeker1.setFullName("Jane Doe");
-            seeker1.setRole(Role.JOB_SEEKER);
-            seeker1 = userRepository.save(seeker1);
-
-            UserProfile seeker1Profile = new UserProfile();
-            seeker1Profile.setUser(seeker1);
-            seeker1Profile.setAbout("Ambitious software engineer with 3 years of development experience in Java.");
-            seeker1Profile.setSkills("Java, Spring Boot, React, SQL, AWS");
-            seeker1Profile.setResumeUrl("https://example.com/resumes/jane-doe.pdf");
-            profileRepository.save(seeker1Profile);
-
-            // Seeker 2
-            User seeker2 = new User();
-            seeker2.setUsername("seeker2");
-            seeker2.setPassword(passwordEncoder.encode("seeker123"));
-            seeker2.setFullName("John Smith");
-            seeker2.setRole(Role.JOB_SEEKER);
-            seeker2 = userRepository.save(seeker2);
-
-            UserProfile seeker2Profile = new UserProfile();
-            seeker2Profile.setUser(seeker2);
-            seeker2Profile.setAbout("Frontend specialist passionate about user-centric responsive interfaces and design.");
-            seeker2Profile.setSkills("JavaScript, React, CSS, HTML5, Bootstrap");
-            seeker2Profile.setResumeUrl("https://example.com/resumes/john-smith.pdf");
-            profileRepository.save(seeker2Profile);
-
-            // 4. Create Jobs
-            // Job 1
-            Job job1 = new Job();
-            job1.setTitle("Senior Java Developer");
-            job1.setDescription("We are looking for an experienced Java Developer to lead our core transaction system revamp. You will write robust, high-throughput microservices using Spring Boot, Hibernate, and Kafka.");
-            job1.setRequiredSkills("Java, Spring Boot, Hibernate, Kafka");
-            job1.setLocation("Bangalore (Hybrid)");
-            job1.setSalary(1500000L);
-            job1.setExperienceRequired(5);
-            job1.setEmployer(employer1);
-            job1.setCreatedAt(new Date());
-            job1.setActive(true);
-            job1 = jobRepository.save(job1);
-
-            // Job 2
-            Job job2 = new Job();
-            job2.setTitle("Frontend React Engineer");
-            job2.setDescription("Join our design-focused team in building gorgeous user experiences. You will collaborate closely with UI/UX designers and write responsive, interactive React components.");
-            job2.setRequiredSkills("React, JavaScript, CSS, Bootstrap, Figma");
-            job2.setLocation("Remote");
-            job2.setSalary(1200000L);
-            job2.setExperienceRequired(3);
-            job2.setEmployer(employer2);
-            job2.setCreatedAt(new Date());
-            job2.setActive(true);
-            job2 = jobRepository.save(job2);
-
-            // Job 3
-            Job job3 = new Job();
-            job3.setTitle("Full Stack Engineer");
-            job3.setDescription("Versatile developer wanted to work across our entire application stack. You will optimize database schemas, maintain Java REST APIs, and refine React frontend dashboard components.");
-            job3.setRequiredSkills("Java, Spring Boot, React, MySQL, AWS");
-            job3.setLocation("Mumbai (On-site)");
-            job3.setSalary(1400000L);
-            job3.setExperienceRequired(4);
-            job3.setEmployer(employer1);
-            job3.setCreatedAt(new Date());
-            job3.setActive(true);
-            job3 = jobRepository.save(job3);
-
-            // Job 4
-            Job job4 = new Job();
-            job4.setTitle("QA Automation Analyst");
-            job4.setDescription("Responsible for building automated test suites, testing REST endpoints, and performing regression runs. You will lead automation initiatives using Selenium, JUnit, and Postman.");
-            job4.setRequiredSkills("Selenium, JUnit, Postman, Java");
-            job4.setLocation("Remote");
-            job4.setSalary(800000L);
-            job4.setExperienceRequired(2);
-            job4.setEmployer(employer2);
-            job4.setCreatedAt(new Date());
-            job4.setActive(true);
-            job4 = jobRepository.save(job4);
-
-            // 5. Create Applications
-            // Application 1: Jane Doe -> Job 1
-            Application app1 = new Application();
-            app1.setJob(job1);
-            app1.setSeeker(seeker1);
-            app1.setStatus(ApplicationStatus.SHORTLISTED);
-            app1.setFullName("Jane Doe");
-            app1.setEmail("jane.doe@example.com");
-            app1.setPhone("+91 9876543210");
-            app1.setSkills("Java, Spring Boot, MySQL");
-            app1.setExperience(3);
-            app1.setExpectedSalary(1600000.0);
-            app1.setNoticePeriod("1 Month");
-            app1.setResumeUrl("https://example.com/resumes/jane-doe.pdf");
-            app1.setCoverLetter("I am highly motivated to join Global Tech Solutions as a Senior Java Developer. I have 3 years of hands-on experience developing enterprise services in Spring Boot.");
-            app1.setAppliedAt(new Date(System.currentTimeMillis() - 1000 * 60 * 60 * 24 * 3)); // 3 days ago
-            applicationRepository.save(app1);
-
-            // Application 2: Jane Doe -> Job 3
-            Application app2 = new Application();
-            app2.setJob(job3);
-            app2.setSeeker(seeker1);
-            app2.setStatus(ApplicationStatus.APPLIED);
-            app2.setFullName("Jane Doe");
-            app2.setEmail("jane.doe@example.com");
-            app2.setPhone("+91 9876543210");
-            app2.setSkills("Java, Spring Boot, React, MySQL");
-            app2.setExperience(3);
-            app2.setExpectedSalary(1500000.0);
-            app2.setNoticePeriod("1 Month");
-            app2.setResumeUrl("https://example.com/resumes/jane-doe.pdf");
-            app2.setCoverLetter("With a background in both Java backends and React frontends, I am excited about the Full Stack position. I can contribute immediately across your system.");
-            app2.setAppliedAt(new Date(System.currentTimeMillis() - 1000 * 60 * 60 * 24 * 1)); // 1 day ago
-            applicationRepository.save(app2);
-
-            // Application 3: John Smith -> Job 2
-            Application app3 = new Application();
-            app3.setJob(job2);
-            app3.setSeeker(seeker2);
-            app3.setStatus(ApplicationStatus.APPLIED);
-            app3.setFullName("John Smith");
-            app3.setEmail("john.smith@example.com");
-            app3.setPhone("+91 9998887776");
-            app3.setSkills("JavaScript, React, CSS, Bootstrap");
-            app3.setExperience(4);
-            app3.setExpectedSalary(1250000.0);
-            app3.setNoticePeriod("Immediate");
-            app3.setResumeUrl("https://example.com/resumes/john-smith.pdf");
-            app3.setCoverLetter("I love crafting beautiful, responsive user interfaces. I would be thrilled to join Innovate Softwares as a Frontend React Engineer.");
-            app3.setAppliedAt(new Date(System.currentTimeMillis() - 1000 * 60 * 60 * 12)); // 12 hours ago
-            applicationRepository.save(app3);
-
-            // Application 4: John Smith -> Job 4
-            Application app4 = new Application();
-            app4.setJob(job4);
-            app4.setSeeker(seeker2);
-            app4.setStatus(ApplicationStatus.REJECTED);
-            app4.setFullName("John Smith");
-            app4.setEmail("john.smith@example.com");
-            app4.setPhone("+91 9998887776");
-            app4.setSkills("Java, Selenium, JUnit");
-            app4.setExperience(1);
-            app4.setExpectedSalary(800000.0);
-            app4.setNoticePeriod("Immediate");
-            app4.setResumeUrl("https://example.com/resumes/john-smith.pdf");
-            app4.setCoverLetter("Applying for the QA role. Although my primary experience is frontend, I have done basic automation scripts in JUnit during a past contract.");
-            app4.setAppliedAt(new Date(System.currentTimeMillis() - 1000 * 60 * 60 * 24 * 5)); // 5 days ago
-            applicationRepository.save(app4);
-
-            System.out.println("Seeding completed successfully.");
-        } else {
-            System.out.println("Database already contains users. Skipping seeder.");
+        // If database already has data, clear it to reseed fresh data
+        if (userRepository.count() > 0) {
+            System.out.println("[Seeder] Database already populated. Resetting data for fresh seed.");
+            // Delete in order respecting foreign key constraints
+            applicationRepository.deleteAll();
+            jobRepository.deleteAll();
+            profileRepository.deleteAll();
+            userRepository.deleteAll();
         }
+
+
+        System.out.println("[Seeder] Starting database seeding (Phase 1-6 expansion)...");
+
+        // ──────────────────────────────────────────────────────────
+        //  1. ADMIN (1)
+        // ──────────────────────────────────────────────────────────
+        User admin = saveUser("admin@hiresphere.com", "Admin@123", "System Administrator", Role.ADMIN);
+        saveProfile(admin, null, "Global platform administrator with super admin access control.", null, null);
+
+        // ──────────────────────────────────────────────────────────
+        //  2. EMPLOYERS (10)
+        // ──────────────────────────────────────────────────────────
+        String[][] employersData = {
+                {"tcs_recruiter", "Tata Consultancy Services", "TCS is a global leader in IT services, consulting, and business solutions."},
+                {"infosys_hr", "Infosys Limited", "Infosys is a global leader in next-generation digital services and consulting."},
+                {"wipro_talent", "Wipro Technologies", "Wipro is a leading global information technology and business process services company."},
+                {"hcl_jobs", "HCL Technologies", "HCL is a next-generation global technology company reimagining enterprise business."},
+                {"zoho_recruit", "Zoho Corporation", "Zoho creates remarkably simple, beautifully designed software to grow businesses."},
+                {"tech_mahindra", "Tech Mahindra", "Tech Mahindra represents the connected world, offering innovative IT experiences."},
+                {"lti_hr", "LTI Mindtree", "LTI Mindtree is a global technology consulting and digital solutions company."},
+                {"cognizant_hr", "Cognizant India", "Cognizant engineers modern businesses to improve everyday life."},
+                {"capgemini_recruit", "Capgemini India", "Capgemini is a global leader in partnering with companies to transform through tech."},
+                {"accenture_careers", "Accenture India", "Accenture is a global professional services company with leading capabilities in digital."}
+        };
+
+        List<User> employers = new ArrayList<>();
+        for (int eIdx = 0; eIdx < employersData.length; eIdx++) {
+            String[] emp = employersData[eIdx];
+            String rawPwd = (eIdx == 0) ? "Employer@123" : "employer123";
+            User u = saveUser(emp[0], rawPwd, emp[1] + " Recruiter", Role.EMPLOYER);
+            saveProfile(u, emp[1], emp[2], null, null);
+            employers.add(u);
+        }
+
+        // ──────────────────────────────────────────────────────────
+        //  3. JOB SEEKERS (50)
+        // ──────────────────────────────────────────────────────────
+        String[] seekerNames = {
+                "Priya Sharma", "Rahul Verma", "Anjali Singh", "Karthik Kumar", "Meera Nair",
+                "Arjun Reddy", "Sneha Patel", "Vivek Joshi", "Pooja Gupta", "Rohit Mehta",
+                "Divya Iyer", "Nikhil Agarwal", "Kavya Pillai", "Siddharth Rao", "Ananya Desai",
+                "Harish Bhat", "Ritu Kapoor", "Manish Tiwari", "Preethi Suresh", "Gaurav Saxena",
+                "Amit Mishra", "Kiran Rao", "Sanjay Dutt", "Neha Dubey", "Sandeep Roy",
+                "Jyoti Ranjan", "Vikram Rathore", "Swati Sen", "Abhinav Gupta", "Deepika Bose",
+                "Manoj Bajpayee", "Shreya Ghoshal", "Varun Dhawan", "Alia Bhatt", "Ranbir Kapoor",
+                "Shraddha Kapoor", "Rajkummar Rao", "Pankaj Tripathi", "Vicky Kaushal", "Ayushmann Khurrana",
+                "Sonu Sood", "Kapil Sharma", "Sunil Grover", "Bharti Singh", "Harsh Limbachiyaa",
+                "Mithali Raj", "Rohit Sharma", "Virat Kohli", "Jasprit Bumrah", "Hardik Pandya"
+        };
+
+        String[] skillsPool = {
+                "Java, Spring Boot, Hibernate, MySQL, REST APIs",
+                "React, JavaScript, TypeScript, CSS3, HTML5, Redux",
+                "Python, Flask, Django, PostgreSQL, Redis, Docker",
+                "Jenkins, Docker, Kubernetes, AWS, Terraform, Ansible",
+                "Python, TensorFlow, PyTorch, Pandas, SQL, Tableau",
+                "Selenium, TestNG, Postman, Java, JIRA, Cypress",
+                "Figma, Adobe XD, User Research, Prototyping, Wireframes",
+                "Kotlin, Java, Android SDK, Jetpack Compose, Firebase",
+                "Swift, SwiftUI, Objective-C, Xcode, Core Data",
+                "C++, Embedded C, RTOS, Linux Kernel, CMake"
+        };
+
+        String[] biosPool = {
+                "Backend engineer focusing on building scalable distributed REST microservices.",
+                "Frontend developer passionate about building interactive, user-centric interfaces.",
+                "Full stack engineer with a knack for system optimization and responsive web design.",
+                "DevOps engineer dedicated to automation, CI/CD pipelines, and cloud migrations.",
+                "Data scientist seeking to solve complex business problems using machine learning models.",
+                "QA automation analyst with strong skills in writing robust automated tests.",
+                "Creative UI/UX designer specialized in mobile and web accessibility design systems.",
+                "Android developer aiming to construct fluid Kotlin mobile applications.",
+                "iOS developer focused on building high-performance Swift applications.",
+                "Systems programmer with research interest in firmware and embedded RTOS systems."
+        };
+
+        List<User> seekers = new ArrayList<>();
+        for (int i = 0; i < seekerNames.length; i++) {
+            String name = seekerNames[i];
+            String username = (i == 0) ? "seeker1@hiresphere.com" : name.toLowerCase().replace(" ", ".");
+            String rawPwd = (i == 0) ? "Seeker@123" : "seeker123";
+            User u = saveUser(username, rawPwd, name, Role.JOB_SEEKER);
+
+            String skills = skillsPool[i % skillsPool.length];
+            String bio = biosPool[i % biosPool.length];
+            String resume = "https://cdn.hiresphere.com/resumes/" + username + "-cv.pdf";
+
+            saveProfile(u, null, bio, skills, resume);
+            seekers.add(u);
+        }
+
+        // ──────────────────────────────────────────────────────────
+        //  4. JOBS (100 Job Posts)
+        // ──────────────────────────────────────────────────────────
+        String[] jobTitles = {
+                "Software Engineer", "Senior Backend Developer", "Frontend Engineer",
+                "Full Stack Developer", "DevOps Engineer", "Data Scientist",
+                "QA Automation Engineer", "UI/UX Product Designer", "Android Developer",
+                "iOS Developer"
+        };
+
+        String[] jobDescriptions = {
+                "Join our engineering team to design and deploy scalable enterprise microservices using standard architectural patterns.",
+                "Lead the backend revamp of high-transaction systems, improving query latency and overall service resilience.",
+                "Collaborate with design and product teams to translate complex requirements into clean, interactive components.",
+                "Write clear, maintainable backend code and develop intuitive layouts across our SaaS products.",
+                "Configure automated CI/CD pipelines, automate infrastructure as code, and monitor server environments.",
+                "Analyze big data structures to build prediction models and present visual insights to product managers.",
+                "Write integration and regression test scripts, ensuring maximum test coverage across release branches.",
+                "Research user behavior, draft clean wireframes, and design scalable UI asset libraries in Figma.",
+                "Architect premium Android application features using Kotlin, Jetpack Compose, and asynchronous flows.",
+                "Create beautiful and native user interfaces for iOS using Swift, SwiftUI, and local storage mechanisms."
+        };
+
+        List<Job> jobs = new ArrayList<>();
+        // 10 Employers each posting 10 jobs (total 100 jobs)
+        for (int eIdx = 0; eIdx < employers.size(); eIdx++) {
+            User emp = employers.get(eIdx);
+            String compName = employersData[eIdx][1];
+            for (int jIdx = 0; jIdx < 10; jIdx++) {
+                int roleIdx = (eIdx + jIdx) % jobTitles.length;
+                String title = jobTitles[roleIdx];
+                String description = jobDescriptions[roleIdx] + " Required to collaborate with cross-functional divisions at " + compName + ".";
+                String skills = skillsPool[roleIdx];
+                String location = (jIdx % 2 == 0) ? "Bangalore (Hybrid)" : "Remote";
+                Long salary = 800000L + (jIdx * 120000L);
+                int exp = 1 + (jIdx % 5);
+                Job job = saveJob(title, description, skills, location, salary, exp, emp, daysAgo(jIdx * 3));
+                jobs.add(job);
+            }
+        }
+
+        // ──────────────────────────────────────────────────────────
+        //  5. APPLICATIONS (600 Job Applications, 5-12 per job)
+        // ──────────────────────────────────────────────────────────
+        Random rand = new Random();
+        ApplicationStatus[] statusCycle = {
+                ApplicationStatus.APPLIED,
+                ApplicationStatus.SHORTLISTED,
+                ApplicationStatus.REJECTED,
+                ApplicationStatus.APPLIED
+        };
+        String[] noticePeriods = {"Immediate", "15 Days", "1 Month", "2 Months", "3 Months"};
+
+        // Ensure each job gets between 5 and 12 applications
+        for (Job job : jobs) {
+            int appsForJob = 5 + rand.nextInt(8); // 5-12 applications per job
+            // Shuffle seekers to pick random subset for this job
+            List<User> shuffledSeekers = new ArrayList<>(seekers);
+            java.util.Collections.shuffle(shuffledSeekers, rand);
+            for (int a = 0; a < appsForJob && a < shuffledSeekers.size(); a++) {
+                User seeker = shuffledSeekers.get(a);
+                String seekerSkills = seeker.getProfile() != null ? seeker.getProfile().getSkills() : null;
+                ApplicationStatus status = statusCycle[rand.nextInt(statusCycle.length)];
+                String phone = "+91 9876" + String.format("%06d", rand.nextInt(900000));
+                double expectedSalary = job.getSalary() * (1.0 + (rand.nextDouble() * 0.2)); // up to +20%
+                String notice = noticePeriods[rand.nextInt(noticePeriods.length)];
+                Date appliedDate = daysAgo(rand.nextInt(30) + 1);
+
+                String coverLetter = "Dear Recruiter,\n\nI am excited to apply for the " + job.getTitle()
+                        + " position at " + job.getEmployer().getFullName()
+                        + ". My experience with " + seekerSkills + " aligns well with the requirements.\n\nThank you.";
+
+                saveApp(job, seeker, status, seeker.getFullName(),
+                        seeker.getUsername() + "@example.com", phone, seekerSkills,
+                        job.getExperienceRequired() + rand.nextInt(3), expectedSalary,
+                        notice, appliedDate, coverLetter);
+            }
+        }
+
+        System.out.println("[Seeder] Successfully seeded:");
+        System.out.println("  - 1 Admin");
+        System.out.println("  - 10 Employers");
+        System.out.println("  - 50 Job Seekers with profiles");
+        System.out.println("  - 100 Job postings");
+
+
+        // ── Export Seeding to SQL Script (data_seed.sql) ────────────
+        try {
+            writeSqlDump();
+        } catch (Exception e) {
+            System.err.println("[Seeder] Error writing SQL dump: " + e.getMessage());
+        }
+    }
+
+    private void writeSqlDump() throws Exception {
+        java.io.File sqlFile = new java.io.File("d:/Hirespere/data_seed.sql");
+        java.io.PrintWriter pw = new java.io.PrintWriter(new java.io.FileWriter(sqlFile));
+
+        pw.println("-- =========================================================================");
+        pw.println("-- HireSphere — Automatically Generated Database Reset and Seed Script");
+        pw.println("-- =========================================================================");
+        pw.println("SET FOREIGN_KEY_CHECKS = 0;");
+        pw.println("TRUNCATE TABLE applications;");
+        pw.println("TRUNCATE TABLE jobs;");
+        pw.println("TRUNCATE TABLE user_profile;");
+        pw.println("TRUNCATE TABLE users;");
+        pw.println("SET FOREIGN_KEY_CHECKS = 1;");
+        pw.println();
+
+        pw.println("-- -------------------------------------------------------------------------");
+        pw.println("-- USERS");
+        pw.println("-- -------------------------------------------------------------------------");
+        for (User u : userRepository.findAll()) {
+            pw.printf("INSERT INTO users (id, username, password, role, full_name, blocked) VALUES (%d, '%s', '%s', '%s', '%s', %d);\n",
+                    u.getId(),
+                    escapeSqlString(u.getUsername()),
+                    escapeSqlString(u.getPassword()),
+                    u.getRole().name(),
+                    escapeSqlString(u.getFullName()),
+                    u.isBlocked() ? 1 : 0
+            );
+        }
+        pw.println();
+
+        pw.println("-- -------------------------------------------------------------------------");
+        pw.println("-- USER PROFILES");
+        pw.println("-- -------------------------------------------------------------------------");
+        for (UserProfile p : profileRepository.findAll()) {
+            pw.printf("INSERT INTO user_profile (id, user_id, company_name, about, skills, resume_url) VALUES (%d, %d, %s, %s, %s, %s);\n",
+                    p.getId(),
+                    p.getUser().getId(),
+                    p.getCompanyName() == null ? "NULL" : "'" + escapeSqlString(p.getCompanyName()) + "'",
+                    p.getAbout() == null ? "NULL" : "'" + escapeSqlString(p.getAbout()) + "'",
+                    p.getSkills() == null ? "NULL" : "'" + escapeSqlString(p.getSkills()) + "'",
+                    p.getResumeUrl() == null ? "NULL" : "'" + escapeSqlString(p.getResumeUrl()) + "'"
+            );
+        }
+        pw.println();
+
+        pw.println("-- -------------------------------------------------------------------------");
+        pw.println("-- JOBS");
+        pw.println("-- -------------------------------------------------------------------------");
+        java.text.SimpleDateFormat df = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        for (Job j : jobRepository.findAll()) {
+            pw.printf("INSERT INTO jobs (id, title, description, required_skills, location, salary, experience_required, employer_id, created_at, active) VALUES (%d, '%s', '%s', '%s', '%s', %d, %d, %d, '%s', %d);\n",
+                    j.getId(),
+                    escapeSqlString(j.getTitle()),
+                    escapeSqlString(j.getDescription()),
+                    escapeSqlString(j.getRequiredSkills()),
+                    escapeSqlString(j.getLocation()),
+                    j.getSalary(),
+                    j.getExperienceRequired(),
+                    j.getEmployer().getId(),
+                    df.format(j.getCreatedAt()),
+                    j.getActive() ? 1 : 0
+            );
+        }
+        pw.println();
+
+        pw.println("-- -------------------------------------------------------------------------");
+        pw.println("-- APPLICATIONS");
+        pw.println("-- -------------------------------------------------------------------------");
+        for (Application a : applicationRepository.findAll()) {
+            pw.printf("INSERT INTO applications (id, job_id, seeker_id, status, full_name, email, phone, skills, experience, resume_url, cover_letter, expected_salary, notice_period, applied_at) VALUES (%d, %d, %d, '%s', '%s', '%s', '%s', '%s', %d, '%s', '%s', %f, '%s', '%s');\n",
+                    a.getId(),
+                    a.getJob().getId(),
+                    a.getSeeker().getId(),
+                    a.getStatus().name(),
+                    escapeSqlString(a.getFullName()),
+                    escapeSqlString(a.getEmail()),
+                    escapeSqlString(a.getPhone()),
+                    escapeSqlString(a.getSkills()),
+                    a.getExperience(),
+                    escapeSqlString(a.getResumeUrl()),
+                    escapeSqlString(a.getCoverLetter()),
+                    a.getExpectedSalary(),
+                    escapeSqlString(a.getNoticePeriod()),
+                    df.format(a.getAppliedAt())
+            );
+        }
+
+        pw.close();
+        System.out.println("[Seeder] Successfully wrote SQL dump to d:/Hirespere/data_seed.sql");
+    }
+
+    private String escapeSqlString(String str) {
+        if (str == null) return "";
+        return str.replace("'", "''");
+    }
+
+
+    // ── Helper Methods ──────────────────────────────────────────────
+
+    private User saveUser(String username, String rawPassword, String fullName, Role role) {
+        // Prevent duplicate usernames during seeding. If a user with the same username already exists,
+        // return the existing entity instead of attempting to insert a new one, which would violate the
+        // unique constraint on the `username` column.
+        if (userRepository.existsByUsername(username)) {
+            // Fetch the existing user (should be safe as existence was confirmed)
+            return userRepository.findByUsername(username).orElseThrow(() ->
+                new IllegalStateException("User with username '" + username + "' exists but could not be retrieved"));
+        }
+        User user = new User();
+        user.setUsername(username);
+        user.setPassword(passwordEncoder.encode(rawPassword));
+        user.setFullName(fullName);
+        user.setRole(role);
+        return userRepository.save(user);
+    }
+
+    private void saveProfile(User user, String companyName, String about, String skills, String resumeUrl) {
+        UserProfile profile = new UserProfile();
+        profile.setUser(user);
+        profile.setCompanyName(companyName);
+        profile.setAbout(about);
+        profile.setSkills(skills);
+        profile.setResumeUrl(resumeUrl);
+        profileRepository.save(profile);
+    }
+
+    private Job saveJob(String title, String description, String skills,
+                        String location, Long salary, int experience,
+                        User employer, Date createdAt) {
+        Job job = new Job();
+        job.setTitle(title);
+        job.setDescription(description);
+        job.setRequiredSkills(skills);
+        job.setLocation(location);
+        job.setSalary(salary);
+        job.setExperienceRequired(experience);
+        job.setEmployer(employer);
+        job.setCreatedAt(createdAt);
+        job.setActive(true);
+        return jobRepository.save(job);
+    }
+
+    private void saveApp(Job job, User seeker, ApplicationStatus status,
+                         String fullName, String email, String phone,
+                         String skills, int experience, double expectedSalary,
+                         String noticePeriod, Date appliedAt, String coverLetter) {
+        Application app = new Application();
+        app.setJob(job);
+        app.setSeeker(seeker);
+        app.setStatus(status);
+        app.setFullName(fullName);
+        app.setEmail(email);
+        app.setPhone(phone);
+        app.setSkills(skills);
+        app.setExperience(experience);
+        app.setExpectedSalary(expectedSalary);
+        app.setNoticePeriod(noticePeriod);
+        app.setAppliedAt(appliedAt);
+        app.setCoverLetter(coverLetter);
+        app.setResumeUrl("https://cdn.hiresphere.com/resumes/" +
+                fullName.toLowerCase().replace(' ', '-') + "-cv.pdf");
+        applicationRepository.save(app);
     }
 }

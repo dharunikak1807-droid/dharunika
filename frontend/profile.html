@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Profile — Hirespere</title>
+    <meta name="description" content="View and update your Hirespere profile details. Keep your skills and resume up to date.">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <link href="css/style.css" rel="stylesheet">
+</head>
+<body>
+
+    <div id="hs-navbar"></div>
+
+    <header class="hs-page-header">
+        <div class="container text-center">
+            <h1>Manage Profile</h1>
+            <p>Update your details so employers or candidates can learn more about you.</p>
+        </div>
+    </header>
+
+    <main class="container py-4">
+        <div class="row justify-content-center">
+            <div class="col-lg-8 col-md-10">
+                <div class="hs-profile-card mb-4">
+                    <div class="hs-profile-banner"></div>
+                    <div class="hs-profile-avatar" id="profile-avatar-char">—</div>
+                    <div class="px-4 pb-4 pt-2 text-center border-bottom">
+                        <h4 class="fw-bold mb-1" id="profile-displayName">Loading Name...</h4>
+                        <p class="text-muted mb-0" id="profile-displayUsername">@username</p>
+                        <span class="badge bg-primary-subtle text-primary-emphasis mt-2 px-3 py-1" id="profile-displayRole">ROLE</span>
+                    </div>
+
+                    <form id="profile-form" onsubmit="handleProfileSubmit(event)" class="p-4" novalidate>
+                        <!-- Common Fields -->
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label for="prof-fullName" class="form-label">Full Name</label>
+                                <input type="text" class="form-control" id="prof-fullName" required>
+                            </div>
+                            <div class="col-md-6" id="field-companyName">
+                                <label for="prof-companyName" class="form-label">Company Name</label>
+                                <input type="text" class="form-control" id="prof-companyName" placeholder="Acme Inc.">
+                            </div>
+                            <div class="col-12">
+                                <label for="prof-about" class="form-label">About / Bio</label>
+                                <textarea class="form-control" id="prof-about" rows="4" placeholder="Tell us about yourself or your company..."></textarea>
+                            </div>
+
+                            <!-- Job Seeker Fields -->
+                            <div class="col-12" id="seeker-only-fields">
+                                <div class="mb-3">
+                                    <label for="prof-skills" class="form-label">Skills (Comma separated)</label>
+                                    <input type="text" class="form-control" id="prof-skills" placeholder="Java, Spring Boot, React, JavaScript">
+                                    <div class="form-text">List your key skills separated by commas.</div>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="prof-resumeUrl" class="form-label">Resume URL</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="bi bi-link-45deg"></i></span>
+                                        <input type="url" class="form-control" id="prof-resumeUrl" placeholder="https://example.com/my-resume.pdf">
+                                    </div>
+                                    <div class="form-text">Link to your resume hosted on Google Drive, Dropbox, or personal website.</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mt-4 pt-3 border-top d-flex justify-content-between align-items-center">
+                            <span class="text-muted small">Last updated: Just now</span>
+                            <button type="submit" class="btn hs-btn-primary" id="save-profile-btn">
+                                <i class="bi bi-floppy me-1"></i> Save Changes
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="hs-footer">
+        <div class="container">
+            <p class="mb-0">&copy; 2026 <strong>Hirespere</strong>. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="js/config.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/auth.js"></script>
+    <script>
+        let currentRole = null;
+        let username = null;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            if (!Auth.requireLogin()) return;
+
+            Auth.renderNavbar();
+            username = Auth.getUsername();
+            currentRole = Auth.getRole();
+
+            setupProfileView();
+            loadProfileData();
+        });
+
+        function setupProfileView() {
+            const seekerFields = document.getElementById('seeker-only-fields');
+            const companyField = document.getElementById('field-companyName');
+
+            if (currentRole === 'JOB_SEEKER') {
+                seekerFields.classList.remove('d-none');
+                companyField.classList.add('d-none');
+                document.getElementById('profile-displayRole').textContent = 'Job Seeker';
+            } else if (currentRole === 'EMPLOYER') {
+                seekerFields.classList.add('d-none');
+                companyField.classList.remove('d-none');
+                document.getElementById('profile-displayRole').textContent = 'Employer';
+            } else {
+                seekerFields.classList.add('d-none');
+                companyField.classList.add('d-none');
+                document.getElementById('profile-displayRole').textContent = 'Administrator';
+            }
+
+            document.getElementById('profile-displayUsername').textContent = `@${username}`;
+            document.getElementById('prof-fullName').value = Auth.getFullName() || '';
+        }
+
+        async function loadProfileData() {
+            showLoader();
+            const res = await API.get(`/api/profile/${username}`);
+            hideLoader();
+
+            if (!res.ok) {
+                showToast('Failed to load profile data', 'error');
+                return;
+            }
+
+            const data = res.data;
+            if (data) {
+                document.getElementById('profile-displayName').textContent = Auth.getFullName() || username;
+                document.getElementById('profile-avatar-char').textContent = (Auth.getFullName() || username).charAt(0).toUpperCase();
+
+                document.getElementById('prof-about').value = data.about || '';
+                document.getElementById('prof-companyName').value = data.companyName || '';
+                document.getElementById('prof-skills').value = data.skills || '';
+                document.getElementById('prof-resumeUrl').value = data.resumeUrl || '';
+            }
+        }
+
+        async function handleProfileSubmit(e) {
+            e.preventDefault();
+
+            const fullName = document.getElementById('prof-fullName').value.trim();
+            const about = document.getElementById('prof-about').value.trim();
+            const companyName = document.getElementById('prof-companyName').value.trim();
+            const skills = document.getElementById('prof-skills').value.trim();
+            const resumeUrl = document.getElementById('prof-resumeUrl').value.trim();
+
+            if (!validateRequired([{ id: 'prof-fullName', name: 'Full Name' }])) return;
+
+            const btn = document.getElementById('save-profile-btn');
+            setBtnLoading(btn, true);
+
+            const payload = {
+                about,
+                skills: currentRole === 'JOB_SEEKER' ? skills : '',
+                resumeUrl: currentRole === 'JOB_SEEKER' ? resumeUrl : '',
+                companyName: currentRole === 'EMPLOYER' ? companyName : ''
+            };
+
+            /* PUT /api/profile/{username}?fullName={fullName} */
+            const res = await API.put(`/api/profile/${username}?fullName=${encodeURIComponent(fullName)}`, payload);
+            setBtnLoading(btn, false);
+
+            if (res.ok) {
+                showToast('Profile updated successfully!', 'success');
+                /* Update cache */
+                localStorage.setItem('hs_fullName', fullName);
+                setupProfileView();
+                loadProfileData();
+            } else {
+                showToast(res.error || 'Failed to update profile', 'error');
+            }
+        }
+    </script>
+</body>
+</html>

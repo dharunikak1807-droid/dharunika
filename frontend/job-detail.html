@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Job Details — Hirespere</title>
+    <meta name="description" content="View job details, requirements, and apply online through Hirespere.">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <link href="css/style.css" rel="stylesheet">
+</head>
+<body>
+
+    <div id="hs-navbar"></div>
+
+    <header class="hs-job-detail-header" id="job-header">
+        <div class="container text-center">
+            <h1 id="job-title">Loading Job Details...</h1>
+            <div class="d-flex justify-content-center gap-3 flex-wrap mt-3" style="font-size: 0.95rem; opacity: 0.9;">
+                <span id="job-company"><i class="bi bi-building me-1"></i>—</span>
+                <span id="job-location"><i class="bi bi-geo-alt me-1"></i>—</span>
+                <span id="job-salary"><i class="bi bi-currency-rupee"></i>—</span>
+                <span id="job-exp"><i class="bi bi-clock me-1"></i>—</span>
+            </div>
+        </div>
+    </header>
+
+    <main class="container py-5">
+        <div class="row g-4">
+            <!-- Job Content -->
+            <div class="col-lg-8">
+                <div class="hs-detail-section">
+                    <h4><i class="bi bi-file-text"></i> Job Description</h4>
+                    <div id="job-description" style="white-space: pre-line;">
+                        Loading description...
+                    </div>
+                </div>
+
+                <div class="hs-detail-section">
+                    <h4><i class="bi bi-code-slash"></i> Required Skills</h4>
+                    <div id="job-skills">
+                        Loading skills...
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sidebar / Action Panel -->
+            <div class="col-lg-4">
+                <div class="hs-detail-section text-center" id="action-panel">
+                    <h4>Apply Now</h4>
+                    <p class="text-muted small">Submit your application for this position. Make sure your profile is up to date.</p>
+
+                    <div id="apply-action-area" class="mt-4">
+                        <!-- Populated by JS based on login state -->
+                        <span class="text-muted">Loading options...</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Apply Modal -->
+    <div class="modal fade" id="applyModal" tabindex="-1" aria-labelledby="applyModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="applyModalLabel">Submit Application</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form id="apply-form" onsubmit="handleApplySubmit(event)" novalidate>
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label for="app-fullName" class="form-label">Full Name</label>
+                            <input type="text" class="form-control" id="app-fullName" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="app-email" class="form-label">Email Address</label>
+                            <input type="email" class="form-control" id="app-email" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="app-phone" class="form-label">Phone Number</label>
+                            <input type="tel" class="form-control" id="app-phone" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="app-skills" class="form-label">Skills (Comma separated)</label>
+                            <input type="text" class="form-control" id="app-skills" placeholder="Java, Spring Boot, MySQL" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="app-experience" class="form-label">Experience (Years)</label>
+                            <input type="number" class="form-control" id="app-experience" min="0" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="app-resumeUrl" class="form-label">Resume Link / URL</label>
+                            <input type="url" class="form-control" id="app-resumeUrl" placeholder="https://example.com/resume.pdf" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="app-expectedSalary" class="form-label">Expected Salary (₹/yr)</label>
+                            <input type="number" class="form-control" id="app-expectedSalary" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="app-noticePeriod" class="form-label">Notice Period</label>
+                            <select class="form-select" id="app-noticePeriod" required>
+                                <option value="Immediate">Immediate</option>
+                                <option value="15 Days">15 Days</option>
+                                <option value="1 Month">1 Month</option>
+                                <option value="2 Months">2 Months</option>
+                                <option value="3 Months">3 Months</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="app-coverLetter" class="form-label">Cover Letter</label>
+                            <textarea class="form-control" id="app-coverLetter" rows="4" placeholder="Why are you a good fit for this role?"></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn hs-btn-primary" id="submit-app-btn">Submit Application</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="hs-footer">
+        <div class="container">
+            <p class="mb-0">&copy; 2026 <strong>Hirespere</strong>. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="js/config.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/auth.js"></script>
+    <script>
+        let jobId = null;
+        let jobDetails = null;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            Auth.renderNavbar();
+
+            const urlParams = new URLSearchParams(window.location.search);
+            jobId = urlParams.get('id');
+
+            if (!jobId) {
+                showToast('No job selected', 'error');
+                setTimeout(() => window.location.href = 'jobs.html', 1500);
+                return;
+            }
+
+            loadJobDetails();
+        });
+
+        async function loadJobDetails() {
+            showLoader();
+            /* Note: GET /api/jobs returns a list. We search the list for the correct job ID. */
+            const res = await API.get('/api/jobs');
+            hideLoader();
+
+            if (!res.ok) {
+                showToast('Failed to load job details', 'error');
+                return;
+            }
+
+            jobDetails = res.data.find(j => j.id == jobId);
+
+            if (!jobDetails) {
+                showToast('Job not found', 'error');
+                document.getElementById('job-title').textContent = 'Job Not Found';
+                return;
+            }
+
+            /* Render job details */
+            document.getElementById('job-title').textContent = jobDetails.title;
+            document.getElementById('job-company').innerHTML = `<i class="bi bi-building me-1"></i>${escapeHtml(jobDetails.employerName || 'Company')}`;
+            document.getElementById('job-location').innerHTML = `<i class="bi bi-geo-alt me-1"></i>${escapeHtml(jobDetails.location || 'Remote')}`;
+            document.getElementById('job-salary').innerHTML = `<i class="bi bi-currency-rupee"></i>${formatSalary(jobDetails.salary)}`;
+            document.getElementById('job-exp').innerHTML = `<i class="bi bi-clock me-1"></i>${jobDetails.experienceRequired != null ? jobDetails.experienceRequired + ' yrs experience' : 'Any experience'}`;
+
+            document.getElementById('job-description').textContent = jobDetails.description || 'No description provided.';
+            document.getElementById('job-skills').innerHTML = renderSkillTags(jobDetails.requiredSkills);
+
+            /* Action area rendering based on role */
+            renderActionArea();
+        }
+
+        async function renderActionArea() {
+            const container = document.getElementById('apply-action-area');
+            if (!Auth.isLoggedIn()) {
+                container.innerHTML = `
+                    <div class="alert alert-warning py-2 mb-3" style="font-size:0.88rem;">
+                        You must be signed in to apply for this job.
+                    </div>
+                    <a href="login.html?redirect=${encodeURIComponent(window.location.href)}" class="btn hs-btn-primary w-100">
+                        Login to Apply
+                    </a>
+                `;
+                return;
+            }
+
+            const role = Auth.getRole();
+            if (role === 'JOB_SEEKER') {
+                /* Pre-fill modal details from profile */
+                const username = Auth.getUsername();
+                showLoader();
+                const profileRes = await API.get(`/api/profile/${username}`);
+                hideLoader();
+
+                let prefilledSkills = '';
+                let prefilledResume = '';
+                if (profileRes.ok && profileRes.data) {
+                    prefilledSkills = profileRes.data.skills || '';
+                    prefilledResume = profileRes.data.resumeUrl || '';
+                }
+
+                // Attach autofill triggers
+                document.getElementById('app-fullName').value = Auth.getFullName() || '';
+                document.getElementById('app-skills').value = prefilledSkills;
+                document.getElementById('app-resumeUrl').value = prefilledResume;
+
+                container.innerHTML = `
+                    <button class="btn hs-btn-primary w-100 py-2 btn-lg" data-bs-toggle="modal" data-bs-target="#applyModal">
+                        Apply for this Job
+                    </button>
+                `;
+            } else if (role === 'EMPLOYER') {
+                if (jobDetails.employerName === Auth.getUsername()) {
+                    container.innerHTML = `
+                        <div class="alert alert-info py-2 mb-3" style="font-size:0.88rem;">
+                            You posted this job.
+                        </div>
+                        <a href="dashboard-employer.html" class="btn hs-btn-outline w-100">
+                            Go to Dashboard
+                        </a>
+                    `;
+                } else {
+                    container.innerHTML = `
+                        <div class="alert alert-secondary py-2" style="font-size:0.88rem;">
+                            Logged in as Employer. Only Job Seekers can apply.
+                        </div>
+                    `;
+                }
+            } else if (role === 'ADMIN') {
+                container.innerHTML = `
+                    <div class="alert alert-secondary py-2" style="font-size:0.88rem;">
+                        Logged in as Administrator.
+                    </div>
+                `;
+            }
+        }
+
+        async function handleApplySubmit(e) {
+            e.preventDefault();
+
+            const fullName = document.getElementById('app-fullName').value.trim();
+            const email = document.getElementById('app-email').value.trim();
+            const phone = document.getElementById('app-phone').value.trim();
+            const skills = document.getElementById('app-skills').value.trim();
+            const experience = document.getElementById('app-experience').value.trim();
+            const resumeUrl = document.getElementById('app-resumeUrl').value.trim();
+            const expectedSalary = document.getElementById('app-expectedSalary').value.trim();
+            const noticePeriod = document.getElementById('app-noticePeriod').value;
+            const coverLetter = document.getElementById('app-coverLetter').value.trim();
+
+            if (!validateRequired([
+                { id: 'app-fullName', name: 'Full Name' },
+                { id: 'app-email', name: 'Email Address' },
+                { id: 'app-phone', name: 'Phone Number' },
+                { id: 'app-skills', name: 'Skills' },
+                { id: 'app-experience', name: 'Experience' },
+                { id: 'app-resumeUrl', name: 'Resume URL' },
+                { id: 'app-expectedSalary', name: 'Expected Salary' }
+            ])) return;
+
+            if (!validateEmail(email)) {
+                document.getElementById('app-email').classList.add('is-invalid');
+                showToast('Please enter a valid email address', 'error');
+                return;
+            }
+
+            if (!validatePhone(phone)) {
+                document.getElementById('app-phone').classList.add('is-invalid');
+                showToast('Please enter a valid phone number', 'error');
+                return;
+            }
+
+            const submitBtn = document.getElementById('submit-app-btn');
+            setBtnLoading(submitBtn, true);
+
+            /* Fetch seeker user profile ID to represent seeker.id */
+            const username = Auth.getUsername();
+            const profileRes = await API.get(`/api/profile/${username}`);
+
+            const userId = profileRes.ok ? profileRes.data.userId : null;
+
+            const payload = {
+                fullName,
+                email,
+                phone,
+                skills,
+                experience: parseInt(experience, 10),
+                resumeUrl,
+                coverLetter,
+                expectedSalary: parseFloat(expectedSalary),
+                noticePeriod,
+                job: { id: parseInt(jobId, 10) },
+                seeker: userId ? { id: parseInt(userId, 10) } : null
+            };
+
+            const res = await API.post('/api/applications', payload);
+            setBtnLoading(submitBtn, false);
+
+            if (res.ok) {
+                showToast('Application submitted successfully!', 'success');
+                /* Close modal */
+                const modalEl = document.getElementById('applyModal');
+                const modal = bootstrap.Modal.getInstance(modalEl);
+                if (modal) modal.hide();
+
+                /* Re-render actions */
+                document.getElementById('apply-action-area').innerHTML = `
+                    <div class="alert alert-success py-2 mb-0" style="font-size:0.88rem;">
+                        <i class="bi bi-check-circle-fill me-1"></i> Applied successfully!
+                    </div>
+                `;
+            } else {
+                showToast(res.error || 'Failed to submit application', 'error');
+            }
+        }
+    </script>
+</body>
+</html>

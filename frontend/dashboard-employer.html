@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Employer Dashboard — Hirespere</title>
+    <meta name="description" content="Manage your posted jobs and view application counts. Create, edit, and remove job listings.">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <link href="css/style.css" rel="stylesheet">
+</head>
+<body>
+
+    <div id="hs-navbar"></div>
+
+    <header class="hs-page-header">
+        <div class="container d-flex justify-content-between align-items-center flex-wrap gap-3">
+            <div>
+                <h1>Employer Dashboard</h1>
+                <p>Manage your job listings and view candidate activity.</p>
+            </div>
+            <button class="btn btn-light hs-btn-primary" data-bs-toggle="modal" data-bs-target="#jobModal" onclick="openCreateModal()">
+                <i class="bi bi-plus-circle me-1"></i> Post New Job
+            </button>
+        </div>
+    </header>
+
+    <main class="container py-4">
+        <!-- Stats Row -->
+        <div class="row g-3 mb-4">
+            <div class="col-md-6">
+                <div class="hs-stat-card">
+                    <div class="hs-stat-icon"><i class="bi bi-file-post"></i></div>
+                    <div class="hs-stat-number" id="stats-total-jobs">0</div>
+                    <div class="hs-stat-label">Total Jobs Posted</div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="hs-stat-card">
+                    <div class="hs-stat-icon" style="background:#e8f5e9;color:#2cb67d;">
+                        <i class="bi bi-people-fill"></i>
+                    </div>
+                    <div class="hs-stat-number" id="stats-total-apps">0</div>
+                    <div class="hs-stat-label">Total Applications Received</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Jobs List Section -->
+        <h2 class="hs-section-title"><i class="bi bi-list-task"></i> Your Job Listings</h2>
+        <div class="hs-card p-0 overflow-hidden mb-4">
+            <div class="table-responsive">
+                <table class="table hs-table mb-0">
+                    <thead>
+                        <tr>
+                            <th>Job Title</th>
+                            <th>Location</th>
+                            <th>Salary</th>
+                            <th>Exp. Required</th>
+                            <th>Applications</th>
+                            <th class="text-end">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="employer-jobs-table">
+                        <tr>
+                            <td colspan="6" class="text-center py-4 text-muted">
+                                Loading your jobs...
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <!-- Job Modal (Create/Edit) -->
+    <div class="modal fade" id="jobModal" tabindex="-1" aria-labelledby="jobModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="jobModalLabel">Post a Job</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form id="job-form" onsubmit="handleJobSubmit(event)" novalidate>
+                    <div class="modal-body">
+                        <input type="hidden" id="job-edit-id">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label for="job-title-input" class="form-label">Job Title</label>
+                                <input type="text" class="form-control" id="job-title-input" required placeholder="Software Engineer">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="job-location-input" class="form-label">Location</label>
+                                <input type="text" class="form-control" id="job-location-input" required placeholder="Bangalore (Hybrid) / Remote">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="job-salary-input" class="form-label">Salary (Annual, ₹)</label>
+                                <input type="number" class="form-control" id="job-salary-input" required placeholder="800000">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="job-exp-input" class="form-label">Experience Required (Years)</label>
+                                <input type="number" class="form-control" id="job-exp-input" required placeholder="2">
+                            </div>
+                            <div class="col-12">
+                                <label for="job-skills-input" class="form-label">Required Skills (Comma separated)</label>
+                                <input type="text" class="form-control" id="job-skills-input" required placeholder="Java, Spring Boot, Hibernate">
+                            </div>
+                            <div class="col-12">
+                                <label for="job-desc-input" class="form-label">Job Description</label>
+                                <textarea class="form-control" id="job-desc-input" rows="6" required placeholder="Provide detail regarding duties, expectations, and benefits..."></textarea>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn hs-btn-primary" id="job-submit-btn">Save Job</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="hs-footer">
+        <div class="container">
+            <p class="mb-0">&copy; 2026 <strong>Hirespere</strong>. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="js/config.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/auth.js"></script>
+    <script>
+        let username = null;
+        let employerJobs = [];
+
+        document.addEventListener('DOMContentLoaded', () => {
+            if (!Auth.requireRole('EMPLOYER')) return;
+
+            Auth.renderNavbar();
+            username = Auth.getUsername();
+            loadEmployerDashboard();
+        });
+
+        async function loadEmployerDashboard() {
+            showLoader();
+            const res = await API.get(`/api/jobs/employer/${username}`);
+            hideLoader();
+
+            if (!res.ok) {
+                showToast(res.error || 'Failed to fetch job list', 'error');
+                document.getElementById('employer-jobs-table').innerHTML = `
+                    <tr>
+                        <td colspan="6" class="text-center py-4 text-danger">
+                            <i class="bi bi-exclamation-triangle me-1"></i> Error loading listings.
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            employerJobs = res.data;
+            renderEmployerJobs();
+        }
+
+        function renderEmployerJobs() {
+            const tbody = document.getElementById('employer-jobs-table');
+            const totalJobsLabel = document.getElementById('stats-total-jobs');
+            const totalAppsLabel = document.getElementById('stats-total-apps');
+
+            totalJobsLabel.textContent = employerJobs.length;
+
+            let totalApps = 0;
+            if (employerJobs.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="6" class="text-center py-5 text-muted">
+                            <i class="bi bi-info-circle me-1" style="font-size:1.5rem; display:block;"></i>
+                            You haven't posted any jobs yet. Click "Post New Job" to get started.
+                        </td>
+                    </tr>
+                `;
+                totalAppsLabel.textContent = 0;
+                return;
+            }
+
+            tbody.innerHTML = employerJobs.map(job => {
+                totalApps += (job.applicationsCount || 0);
+                return `
+                    <tr>
+                        <td class="fw-bold text-dark">${escapeHtml(job.title)}</td>
+                        <td><i class="bi bi-geo-alt text-muted me-1"></i>${escapeHtml(job.location || 'Remote')}</td>
+                        <td>${formatSalary(job.salary)}</td>
+                        <td>${job.experienceRequired != null ? job.experienceRequired + ' yrs' : 'Any'}</td>
+                        <td>
+                            <span class="badge bg-primary-subtle text-primary-emphasis px-3 py-1">
+                                ${job.applicationsCount || 0}
+                            </span>
+                        </td>
+                        <td class="text-end">
+                            <div class="btn-group gap-1">
+                                <button class="btn btn-sm btn-outline-secondary" onclick="openEditModal(${job.id})">
+                                    <i class="bi bi-pencil"></i> Edit
+                                </button>
+                                <button class="btn btn-sm hs-btn-danger text-white" onclick="deleteJobListing(${job.id})">
+                                    <i class="bi bi-trash"></i> Delete
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+
+            totalAppsLabel.textContent = totalApps;
+        }
+
+        function openCreateModal() {
+            document.getElementById('jobModalLabel').textContent = 'Post a New Job';
+            document.getElementById('job-edit-id').value = '';
+            document.getElementById('job-form').reset();
+            clearValidation('job-form');
+        }
+
+        function openEditModal(jobId) {
+            const job = employerJobs.find(j => j.id == jobId);
+            if (!job) return;
+
+            document.getElementById('jobModalLabel').textContent = 'Update Job Listing';
+            document.getElementById('job-edit-id').value = job.id;
+            document.getElementById('job-title-input').value = job.title;
+            document.getElementById('job-location-input').value = job.location || '';
+            document.getElementById('job-salary-input').value = job.salary || '';
+            document.getElementById('job-exp-input').value = job.experienceRequired || '';
+            document.getElementById('job-skills-input').value = job.requiredSkills || '';
+            document.getElementById('job-desc-input').value = job.description || '';
+
+            clearValidation('job-form');
+            const modal = new bootstrap.Modal(document.getElementById('jobModal'));
+            modal.show();
+        }
+
+        async function handleJobSubmit(e) {
+            e.preventDefault();
+
+            const editId = document.getElementById('job-edit-id').value;
+            const title = document.getElementById('job-title-input').value.trim();
+            const location = document.getElementById('job-location-input').value.trim();
+            const salary = document.getElementById('job-salary-input').value.trim();
+            const experienceRequired = document.getElementById('job-exp-input').value.trim();
+            const requiredSkills = document.getElementById('job-skills-input').value.trim();
+            const description = document.getElementById('job-desc-input').value.trim();
+
+            if (!validateRequired([
+                { id: 'job-title-input', name: 'Job Title' },
+                { id: 'job-location-input', name: 'Location' },
+                { id: 'job-salary-input', name: 'Salary' },
+                { id: 'job-exp-input', name: 'Experience Required' },
+                { id: 'job-skills-input', name: 'Skills' },
+                { id: 'job-desc-input', name: 'Description' }
+            ])) return;
+
+            const submitBtn = document.getElementById('job-submit-btn');
+            setBtnLoading(submitBtn, true);
+
+            const payload = {
+                title,
+                location,
+                salary: parseFloat(salary),
+                experienceRequired: parseInt(experienceRequired, 10),
+                requiredSkills,
+                description
+            };
+
+            let res;
+            if (editId) {
+                /* PUT /api/jobs/{id}?username={username} */
+                res = await API.put(`/api/jobs/${editId}?username=${encodeURIComponent(username)}`, payload);
+            } else {
+                /* POST /api/jobs?username={username} */
+                res = await API.post(`/api/jobs?username=${encodeURIComponent(username)}`, payload);
+            }
+
+            setBtnLoading(submitBtn, false);
+
+            if (res.ok) {
+                showToast(editId ? 'Job updated successfully!' : 'Job posted successfully!', 'success');
+                /* Close modal */
+                const modalEl = document.getElementById('jobModal');
+                const modal = bootstrap.Modal.getInstance(modalEl);
+                if (modal) modal.hide();
+
+                loadEmployerDashboard();
+            } else {
+                showToast(res.error || 'Failed to save job details', 'error');
+            }
+        }
+
+        async function deleteJobListing(jobId) {
+            if (!confirm('Are you sure you want to delete this job? All applications will also be deleted.')) return;
+
+            showLoader();
+            const res = await API.delete(`/api/jobs/${jobId}`);
+            hideLoader();
+
+            if (res.ok) {
+                showToast('Job listing deleted successfully', 'success');
+                loadEmployerDashboard();
+            } else {
+                showToast(res.error || 'Failed to delete job', 'error');
+            }
+        }
+    </script>
+</body>
+</html>

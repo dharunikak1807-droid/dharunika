@@ -1,0 +1,10 @@
+{
+    "java.compile.nullAnalysis.mode": "automatic",
+    "java.jdt.ls.vmargs": "-Xms128m -Xmx512m -XX:MaxMetaspaceSize=256m",
+    "maven.terminal.customEnv": [
+        {
+            "environmentVariable": "MAVEN_OPTS",
+            "value": "-Xms128m -Xmx512m -XX:MaxMetaspaceSize=256m"
+        }
+    ]
+}

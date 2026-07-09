@@ -24,6 +24,7 @@ public class UserProfileService {
     /**
      * Get user profile
      */
+    @Transactional(readOnly = true)
     public UserProfile getProfile(String username) {
 
         User user = userRepository.findByUsername(username)

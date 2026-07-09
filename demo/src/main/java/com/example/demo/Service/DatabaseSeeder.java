@@ -41,25 +41,45 @@ public class DatabaseSeeder implements CommandLineRunner {
         return c.getTime();
     }
 
+    @org.springframework.transaction.annotation.Transactional
     @Override
     public void run(String... args) throws Exception {
-        // If database already has data, clear it to reseed fresh data
-        if (userRepository.count() > 0) {
-            System.out.println("[Seeder] Database already populated. Resetting data for fresh seed.");
-            // Delete in order respecting foreign key constraints
-            applicationRepository.deleteAll();
-            jobRepository.deleteAll();
-            profileRepository.deleteAll();
-            userRepository.deleteAll();
+        System.out.println("[Seeder] Starting database consistency check & orphan cleanup...");
+        try {
+            // Clean up orphaned applications
+            for (Application a : applicationRepository.findAll()) {
+                if (a.getJob() == null || !jobRepository.existsById(a.getJob().getId()) ||
+                    a.getSeeker() == null || !userRepository.existsById(a.getSeeker().getId())) {
+                    applicationRepository.delete(a);
+                }
+            }
+            // Clean up orphaned jobs
+            for (Job j : jobRepository.findAll()) {
+                if (j.getEmployer() == null || !userRepository.existsById(j.getEmployer().getId())) {
+                    applicationRepository.deleteByJobId(j.getId());
+                    jobRepository.delete(j);
+                }
+            }
+            // Clean up orphaned profiles
+            for (UserProfile p : profileRepository.findAll()) {
+                if (p.getUser() == null || !userRepository.existsById(p.getUser().getId())) {
+                    profileRepository.delete(p);
+                }
+            }
+        } catch (Exception ex) {
+            System.err.println("[Seeder] Error during consistency check: " + ex.getMessage());
         }
-
 
         System.out.println("[Seeder] Starting database seeding (Phase 1-6 expansion)...");
 
+        // Ensure core admin account is always available for login
+        ensureAdminUser();
+
         // ──────────────────────────────────────────────────────────
-        //  1. ADMIN (1)
+        //  1. ADMIN (1) — profile only; user created above
         // ──────────────────────────────────────────────────────────
-        User admin = saveUser("admin@hiresphere.com", "Admin@123", "System Administrator", Role.ADMIN);
+        User admin = userRepository.findByUsername("admin")
+                .orElseThrow(() -> new IllegalStateException("Admin user missing after ensureAdminUser"));
         saveProfile(admin, null, "Global platform administrator with super admin access control.", null, null);
 
         // ──────────────────────────────────────────────────────────
@@ -81,7 +101,7 @@ public class DatabaseSeeder implements CommandLineRunner {
         List<User> employers = new ArrayList<>();
         for (int eIdx = 0; eIdx < employersData.length; eIdx++) {
             String[] emp = employersData[eIdx];
-            String rawPwd = (eIdx == 0) ? "Employer@123" : "employer123";
+            String rawPwd = "employer123";
             User u = saveUser(emp[0], rawPwd, emp[1] + " Recruiter", Role.EMPLOYER);
             saveProfile(u, emp[1], emp[2], null, null);
             employers.add(u);
@@ -132,8 +152,8 @@ public class DatabaseSeeder implements CommandLineRunner {
         List<User> seekers = new ArrayList<>();
         for (int i = 0; i < seekerNames.length; i++) {
             String name = seekerNames[i];
-            String username = (i == 0) ? "seeker1@hiresphere.com" : name.toLowerCase().replace(" ", ".");
-            String rawPwd = (i == 0) ? "Seeker@123" : "seeker123";
+            String username = name.toLowerCase().replace(" ", ".");
+            String rawPwd = "seeker123";
             User u = saveUser(username, rawPwd, name, Role.JOB_SEEKER);
 
             String skills = skillsPool[i % skillsPool.length];
@@ -239,7 +259,11 @@ public class DatabaseSeeder implements CommandLineRunner {
     }
 
     private void writeSqlDump() throws Exception {
-        java.io.File sqlFile = new java.io.File("d:/Hirespere/data_seed.sql");
+        java.io.File projectRoot = new java.io.File(System.getProperty("user.dir")).getParentFile();
+        if (projectRoot == null) {
+            projectRoot = new java.io.File(System.getProperty("user.dir"));
+        }
+        java.io.File sqlFile = new java.io.File(projectRoot, "data_seed.sql");
         java.io.PrintWriter pw = new java.io.PrintWriter(new java.io.FileWriter(sqlFile));
 
         pw.println("-- =========================================================================");
@@ -326,7 +350,7 @@ public class DatabaseSeeder implements CommandLineRunner {
         }
 
         pw.close();
-        System.out.println("[Seeder] Successfully wrote SQL dump to d:/Hirespere/data_seed.sql");
+        System.out.println("[Seeder] Successfully wrote SQL dump to " + sqlFile.getAbsolutePath());
     }
 
     private String escapeSqlString(String str) {
@@ -337,68 +361,96 @@ public class DatabaseSeeder implements CommandLineRunner {
 
     // ── Helper Methods ──────────────────────────────────────────────
 
+    private void ensureAdminUser() {
+        userRepository.findByUsername("admin").ifPresentOrElse(existing -> {
+            if (existing.isBlocked()) {
+                existing.setBlocked(false);
+                userRepository.save(existing);
+                System.out.println("[Seeder] Unblocked existing admin account.");
+            }
+        }, () -> {
+            User admin = new User();
+            admin.setUsername("admin");
+            admin.setPassword(passwordEncoder.encode("admin123"));
+            admin.setFullName("System Administrator");
+            admin.setRole(Role.ADMIN);
+            admin.setBlocked(false);
+            userRepository.save(admin);
+            System.out.println("[Seeder] Created default admin account (admin / admin123).");
+        });
+    }
+
     private User saveUser(String username, String rawPassword, String fullName, Role role) {
-        // Prevent duplicate usernames during seeding. If a user with the same username already exists,
-        // return the existing entity instead of attempting to insert a new one, which would violate the
-        // unique constraint on the `username` column.
-        if (userRepository.existsByUsername(username)) {
-            // Fetch the existing user (should be safe as existence was confirmed)
-            return userRepository.findByUsername(username).orElseThrow(() ->
-                new IllegalStateException("User with username '" + username + "' exists but could not be retrieved"));
-        }
-        User user = new User();
-        user.setUsername(username);
-        user.setPassword(passwordEncoder.encode(rawPassword));
-        user.setFullName(fullName);
-        user.setRole(role);
-        return userRepository.save(user);
+        return userRepository.findByUsername(username).map(existing -> {
+            if (existing.isBlocked()) {
+                existing.setBlocked(false);
+                return userRepository.save(existing);
+            }
+            return existing;
+        }).orElseGet(() -> {
+            User user = new User();
+            user.setUsername(username);
+            user.setPassword(passwordEncoder.encode(rawPassword));
+            user.setFullName(fullName);
+            user.setRole(role);
+            return userRepository.save(user);
+        });
     }
 
     private void saveProfile(User user, String companyName, String about, String skills, String resumeUrl) {
-        UserProfile profile = new UserProfile();
-        profile.setUser(user);
-        profile.setCompanyName(companyName);
-        profile.setAbout(about);
-        profile.setSkills(skills);
-        profile.setResumeUrl(resumeUrl);
-        profileRepository.save(profile);
+        if (!profileRepository.findByUserId(user.getId()).isPresent()) {
+            UserProfile profile = new UserProfile();
+            profile.setUser(user);
+            profile.setCompanyName(companyName);
+            profile.setAbout(about);
+            profile.setSkills(skills);
+            profile.setResumeUrl(resumeUrl);
+            profileRepository.save(profile);
+        }
     }
 
     private Job saveJob(String title, String description, String skills,
                         String location, Long salary, int experience,
                         User employer, Date createdAt) {
-        Job job = new Job();
-        job.setTitle(title);
-        job.setDescription(description);
-        job.setRequiredSkills(skills);
-        job.setLocation(location);
-        job.setSalary(salary);
-        job.setExperienceRequired(experience);
-        job.setEmployer(employer);
-        job.setCreatedAt(createdAt);
-        job.setActive(true);
-        return jobRepository.save(job);
+        return jobRepository.findByEmployerId(employer.getId()).stream()
+                .filter(j -> j.getTitle().equalsIgnoreCase(title))
+                .findFirst()
+                .orElseGet(() -> {
+                    Job job = new Job();
+                    job.setTitle(title);
+                    job.setDescription(description);
+                    job.setRequiredSkills(skills);
+                    job.setLocation(location);
+                    job.setSalary(salary);
+                    job.setExperienceRequired(experience);
+                    job.setEmployer(employer);
+                    job.setCreatedAt(createdAt);
+                    job.setActive(true);
+                    return jobRepository.save(job);
+                });
     }
 
     private void saveApp(Job job, User seeker, ApplicationStatus status,
                          String fullName, String email, String phone,
                          String skills, int experience, double expectedSalary,
                          String noticePeriod, Date appliedAt, String coverLetter) {
-        Application app = new Application();
-        app.setJob(job);
-        app.setSeeker(seeker);
-        app.setStatus(status);
-        app.setFullName(fullName);
-        app.setEmail(email);
-        app.setPhone(phone);
-        app.setSkills(skills);
-        app.setExperience(experience);
-        app.setExpectedSalary(expectedSalary);
-        app.setNoticePeriod(noticePeriod);
-        app.setAppliedAt(appliedAt);
-        app.setCoverLetter(coverLetter);
-        app.setResumeUrl("https://cdn.hiresphere.com/resumes/" +
-                fullName.toLowerCase().replace(' ', '-') + "-cv.pdf");
-        applicationRepository.save(app);
+        if (!applicationRepository.existsByJobIdAndSeekerId(job.getId(), seeker.getId())) {
+            Application app = new Application();
+            app.setJob(job);
+            app.setSeeker(seeker);
+            app.setStatus(status);
+            app.setFullName(fullName);
+            app.setEmail(email);
+            app.setPhone(phone);
+            app.setSkills(skills);
+            app.setExperience(experience);
+            app.setExpectedSalary(expectedSalary);
+            app.setNoticePeriod(noticePeriod);
+            app.setAppliedAt(appliedAt);
+            app.setCoverLetter(coverLetter);
+            app.setResumeUrl("https://cdn.hiresphere.com/resumes/" +
+                    fullName.toLowerCase().replace(' ', '-') + "-cv.pdf");
+            applicationRepository.save(app);
+        }
     }
 }

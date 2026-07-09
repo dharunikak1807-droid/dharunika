@@ -151,7 +151,10 @@ public class JobService {
         response.setExperienceRequired(job.getExperienceRequired());
 
         if (job.getEmployer() != null) {
-            response.setEmployerName(job.getEmployer().getUsername());
+            String name = (job.getEmployer().getProfile() != null && job.getEmployer().getProfile().getCompanyName() != null)
+                ? job.getEmployer().getProfile().getCompanyName()
+                : job.getEmployer().getFullName();
+            response.setEmployerName(name != null ? name : job.getEmployer().getUsername());
         }
 
         response.setApplicationsCount(

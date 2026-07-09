@@ -1,11 +1,11 @@
 package com.example.demo.Controller;
 
-import com.example.demo.Entity.Application;
-import com.example.demo.Entity.Job;
-import com.example.demo.Entity.User;
 import com.example.demo.Service.AdminService;
 import com.example.demo.dto.AdminUserDTO;
+import com.example.demo.dto.ApplicationResponseDTO;
 import com.example.demo.dto.DashboardStatsDTO;
+import com.example.demo.dto.JobResponse;
+import com.example.demo.dto.UserSummaryDTO;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -33,22 +33,22 @@ public class AdminController {
     // ── User Management ─────────────────────────────────────────────
 
     @GetMapping("/users")
-    public ResponseEntity<List<User>> getAllUsers() {
+    public ResponseEntity<List<UserSummaryDTO>> getAllUsers() {
         return ResponseEntity.ok(adminService.getAllUsers());
     }
 
     @GetMapping("/users/{id}")
-    public ResponseEntity<User> getUserById(@PathVariable Long id) {
+    public ResponseEntity<UserSummaryDTO> getUserById(@PathVariable Long id) {
         return ResponseEntity.ok(adminService.getUserById(id));
     }
 
     @PostMapping("/users")
-    public ResponseEntity<User> createUser(@RequestBody AdminUserDTO dto) {
+    public ResponseEntity<UserSummaryDTO> createUser(@RequestBody AdminUserDTO dto) {
         return ResponseEntity.ok(adminService.createUser(dto));
     }
 
     @PutMapping("/users/{id}")
-    public ResponseEntity<User> updateUser(@PathVariable Long id,
+    public ResponseEntity<UserSummaryDTO> updateUser(@PathVariable Long id,
                                            @RequestBody AdminUserDTO dto) {
         return ResponseEntity.ok(adminService.updateUser(id, dto));
     }
@@ -72,7 +72,7 @@ public class AdminController {
     // ── Job Management ──────────────────────────────────────────────
 
     @GetMapping("/jobs")
-    public ResponseEntity<List<Job>> getAllJobs() {
+    public ResponseEntity<List<JobResponse>> getAllJobs() {
         return ResponseEntity.ok(adminService.getAllJobs());
     }
 
@@ -85,7 +85,7 @@ public class AdminController {
     // ── Application Management ──────────────────────────────────────
 
     @GetMapping("/applications")
-    public ResponseEntity<List<Application>> getAllApplications() {
+    public ResponseEntity<List<ApplicationResponseDTO>> getAllApplications() {
         return ResponseEntity.ok(adminService.getAllApplications());
     }
 }

@@ -2,6 +2,7 @@ package com.example.demo.Service;
 
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -79,19 +80,14 @@ public class AuthService {
 
     public AuthResponse authenticate(AuthRequest request) {
 
-        authenticationManager.authenticate(
+        Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
                         request.getUsername(),
                         request.getPassword()
                 )
         );
 
-        User user = userRepository.findByUsername(request.getUsername())
-                .orElseThrow(() -> new RuntimeException("User not found"));
-
-        if (user.isBlocked()) {
-            throw new org.springframework.security.authentication.LockedException("Your account has been blocked. Please contact system admin.");
-        }
+        User user = (User) authentication.getPrincipal();
 
         String token = jwtUtil.generateToken(user);
 

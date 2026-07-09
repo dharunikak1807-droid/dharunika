@@ -10,9 +10,15 @@ import com.example.demo.Repository.JobRepository;
 import com.example.demo.Repository.UserProfileRepository;
 import com.example.demo.Repository.UserRepository;
 import com.example.demo.dto.AdminUserDTO;
+import com.example.demo.dto.ApplicationResponseDTO;
 import com.example.demo.dto.DashboardStatsDTO;
 import com.example.demo.dto.DashboardStatsDTO.RecentJobDTO;
 import com.example.demo.dto.DashboardStatsDTO.RecentUserDTO;
+import com.example.demo.dto.EmployerSummaryDTO;
+import com.example.demo.dto.JobResponse;
+import com.example.demo.dto.JobSummaryDTO;
+import com.example.demo.dto.ProfileSummaryDTO;
+import com.example.demo.dto.UserSummaryDTO;
 
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -44,6 +50,7 @@ public class AdminService {
 
     // ── Dashboard Stats ─────────────────────────────────────────────
 
+    @Transactional(readOnly = true)
     public DashboardStatsDTO getDashboardStats() {
         DashboardStatsDTO stats = new DashboardStatsDTO();
 
@@ -80,17 +87,19 @@ public class AdminService {
 
     // ── User Management ─────────────────────────────────────────────
 
-    public List<User> getAllUsers() {
-        return userRepository.findAll();
+    @Transactional(readOnly = true)
+    public List<UserSummaryDTO> getAllUsers() {
+        return userRepository.findAll().stream().map(this::toUserSummary).collect(Collectors.toList());
     }
 
-    public User getUserById(Long id) {
-        return userRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("User not found with id: " + id));
+    @Transactional(readOnly = true)
+    public UserSummaryDTO getUserById(Long id) {
+        return toUserSummary(userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("User not found with id: " + id)));
     }
 
     @Transactional
-    public User createUser(AdminUserDTO dto) {
+    public UserSummaryDTO createUser(AdminUserDTO dto) {
         if (userRepository.existsByUsername(dto.getUsername())) {
             throw new RuntimeException("Username already exists: " + dto.getUsername());
         }
@@ -115,12 +124,13 @@ public class AdminService {
         profile.setCompanyName(dto.getCompanyName());
         profileRepository.save(profile);
 
-        return saved;
+        return toUserSummary(saved);
     }
 
     @Transactional
-    public User updateUser(Long id, AdminUserDTO dto) {
-        User user = getUserById(id);
+    public UserSummaryDTO updateUser(Long id, AdminUserDTO dto) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("User not found with id: " + id));
 
         if (dto.getFullName() != null && !dto.getFullName().isBlank()) {
             user.setFullName(dto.getFullName());
@@ -150,12 +160,13 @@ public class AdminService {
             profileRepository.save(profile);
         }
 
-        return saved;
+        return toUserSummary(saved);
     }
 
     @Transactional
     public boolean toggleBlockUser(Long id) {
-        User user = getUserById(id);
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("User not found with id: " + id));
         user.setBlocked(!user.isBlocked());
         userRepository.save(user);
         return user.isBlocked();
@@ -163,7 +174,8 @@ public class AdminService {
 
     @Transactional
     public void deleteUser(Long id) {
-        User user = getUserById(id);
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("User not found with id: " + id));
         // Delete all applications by this user
         if (user.getRole() == Role.JOB_SEEKER) {
             List<Application> apps = applicationRepository.findBySeekerId(id);
@@ -182,8 +194,9 @@ public class AdminService {
 
     // ── Job Management ──────────────────────────────────────────────
 
-    public List<Job> getAllJobs() {
-        return jobRepository.findAll();
+    @Transactional(readOnly = true)
+    public List<JobResponse> getAllJobs() {
+        return jobRepository.findAll().stream().map(this::toJobResponse).collect(Collectors.toList());
     }
 
     @Transactional
@@ -194,7 +207,82 @@ public class AdminService {
 
     // ── Application Management ──────────────────────────────────────
 
-    public List<Application> getAllApplications() {
-        return applicationRepository.findAll();
+    @Transactional(readOnly = true)
+    public List<ApplicationResponseDTO> getAllApplications() {
+        return applicationRepository.findAll().stream().map(this::toApplicationResponse).collect(Collectors.toList());
+    }
+
+    private UserSummaryDTO toUserSummary(User user) {
+        UserSummaryDTO dto = new UserSummaryDTO();
+        dto.setId(user.getId());
+        dto.setUsername(user.getUsername());
+        dto.setFullName(user.getFullName());
+        dto.setRole(user.getRole() != null ? user.getRole().name() : null);
+        dto.setBlocked(user.isBlocked());
+        if (user.getProfile() != null) {
+            ProfileSummaryDTO profileDto = new ProfileSummaryDTO();
+            profileDto.setCompanyName(user.getProfile().getCompanyName());
+            dto.setProfile(profileDto);
+        }
+        return dto;
+    }
+
+    private JobResponse toJobResponse(Job job) {
+        JobResponse response = new JobResponse();
+        response.setId(job.getId());
+        response.setTitle(job.getTitle());
+        response.setDescription(job.getDescription());
+        response.setLocation(job.getLocation());
+        response.setSalary(job.getSalary());
+        response.setRequiredSkills(job.getRequiredSkills());
+        response.setExperienceRequired(job.getExperienceRequired());
+        if (job.getEmployer() != null) {
+            String name = (job.getEmployer().getProfile() != null && job.getEmployer().getProfile().getCompanyName() != null)
+                    ? job.getEmployer().getProfile().getCompanyName()
+                    : job.getEmployer().getFullName();
+            response.setEmployerName(name != null ? name : job.getEmployer().getUsername());
+        }
+        response.setApplicationsCount(applicationRepository.countByJobId(job.getId()));
+        return response;
+    }
+
+    private ApplicationResponseDTO toApplicationResponse(Application app) {
+        ApplicationResponseDTO dto = new ApplicationResponseDTO();
+        dto.setId(app.getId());
+        dto.setFullName(app.getFullName());
+        dto.setEmail(app.getEmail());
+        dto.setPhone(app.getPhone());
+        dto.setSkills(app.getSkills());
+        dto.setExperience(app.getExperience());
+        dto.setResumeUrl(app.getResumeUrl());
+        dto.setCoverLetter(app.getCoverLetter());
+        dto.setExpectedSalary(app.getExpectedSalary());
+        dto.setNoticePeriod(app.getNoticePeriod());
+        dto.setStatus(app.getStatus());
+        dto.setAppliedAt(app.getAppliedAt());
+        if (app.getJob() != null) {
+            JobSummaryDTO jobDto = new JobSummaryDTO();
+            jobDto.setId(app.getJob().getId());
+            jobDto.setTitle(app.getJob().getTitle());
+            jobDto.setLocation(app.getJob().getLocation());
+            jobDto.setSalary(app.getJob().getSalary());
+            jobDto.setExperienceRequired(app.getJob().getExperienceRequired());
+            jobDto.setRequiredSkills(app.getJob().getRequiredSkills());
+            jobDto.setDescription(app.getJob().getDescription());
+            if (app.getJob().getEmployer() != null) {
+                EmployerSummaryDTO employerDto = new EmployerSummaryDTO();
+                employerDto.setId(app.getJob().getEmployer().getId());
+                employerDto.setFullName(app.getJob().getEmployer().getFullName());
+                employerDto.setUsername(app.getJob().getEmployer().getUsername());
+                if (app.getJob().getEmployer().getProfile() != null) {
+                    ProfileSummaryDTO profileDto = new ProfileSummaryDTO();
+                    profileDto.setCompanyName(app.getJob().getEmployer().getProfile().getCompanyName());
+                    employerDto.setProfile(profileDto);
+                }
+                jobDto.setEmployer(employerDto);
+            }
+            dto.setJob(jobDto);
+        }
+        return dto;
     }
 }

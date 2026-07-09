@@ -35,18 +35,35 @@ public class GlobalExceptionHandler {
         return buildErrorResponse(message, HttpStatus.UNAUTHORIZED);
     }
 
+    @ExceptionHandler(org.springframework.security.core.userdetails.UsernameNotFoundException.class)
+    public ResponseEntity<ErrorResponseDTO> handleUsernameNotFound(
+            org.springframework.security.core.userdetails.UsernameNotFoundException ex) {
+        return buildErrorResponse("Invalid username or password.", HttpStatus.UNAUTHORIZED);
+    }
+
     @ExceptionHandler(RuntimeException.class)
     public ResponseEntity<ErrorResponseDTO> handleRuntimeException(RuntimeException ex) {
-        return buildErrorResponse(ex.getMessage(), HttpStatus.BAD_REQUEST);
+        String msg = ex.getMessage() != null ? ex.getMessage() : "An error occurred";
+        HttpStatus status;
+        if (msg.contains("already exists") || msg.contains("already applied")) {
+            status = HttpStatus.CONFLICT;       // 409 — duplicate
+        } else if (msg.toLowerCase().contains("not found")) {
+            status = HttpStatus.NOT_FOUND;      // 404
+        } else if (msg.contains("blocked")) {
+            status = HttpStatus.FORBIDDEN;      // 403
+        } else {
+            status = HttpStatus.BAD_REQUEST;    // 400
+        }
+        return buildErrorResponse(msg, status);
     }
 
     private ResponseEntity<com.example.demo.dto.ErrorResponseDTO> buildErrorResponse(String message, @NonNull HttpStatus status) {
         com.example.demo.dto.ErrorResponseDTO errorResponse = new com.example.demo.dto.ErrorResponseDTO();
         errorResponse.setTimestamp(java.time.Instant.now());
         errorResponse.setStatus(status.value());
-        errorResponse.setError(status.getReasonPhrase());
+        // Set BOTH error and message to the actual message so frontend can read either field
+        errorResponse.setError(message);
         errorResponse.setMessage(message);
-        // You may set the request path later if needed via a HandlerMethodArgumentResolver
         return new ResponseEntity<>(errorResponse, status);
     }
 }

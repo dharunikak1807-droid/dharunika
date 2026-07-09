@@ -74,8 +74,8 @@ public class JWTAuthFilter extends OncePerRequestFilter {
                 }
             }
 
-        } catch (JwtException | IllegalArgumentException ex) {
-            // Invalid or expired JWT
+        } catch (Exception ex) {
+            // Invalid/expired JWT or database retrieval error
         }
 
         filterChain.doFilter(request, response);

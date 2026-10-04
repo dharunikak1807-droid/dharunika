@@ -87,15 +87,11 @@
                         </div>
                         <div class="mb-3">
                             <label for="app-experience" class="form-label">Experience (Years)</label>
-                            <input type="number" class="form-control" id="app-experience" min="0" required>
+                            <input type="number" class="form-control" id="app-experience" min="0" value="0" required>
                         </div>
                         <div class="mb-3">
-                            <label for="app-resumeUrl" class="form-label">Resume Link / URL</label>
-                            <input type="url" class="form-control" id="app-resumeUrl" placeholder="https://example.com/resume.pdf" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="app-expectedSalary" class="form-label">Expected Salary (₹/yr)</label>
-                            <input type="number" class="form-control" id="app-expectedSalary" required>
+                            <label for="app-resumeUrl" class="form-label">Resume Link / URL <span class="text-muted small fw-normal">(Optional)</span></label>
+                            <input type="text" class="form-control" id="app-resumeUrl" placeholder="https://drive.google.com/your-resume.pdf">
                         </div>
                         <div class="mb-3">
                             <label for="app-noticePeriod" class="form-label">Notice Period</label>
@@ -201,34 +197,92 @@
 
             const role = Auth.getRole();
             if (role === 'JOB_SEEKER') {
-                /* Pre-fill modal details from profile */
-                const username = Auth.getUsername();
+                const username = Auth.getUsername() || Auth.getEmail();
                 showLoader();
-                const profileRes = await API.get(`/api/profile/${username}`);
+                const [profileRes, appsRes] = await Promise.all([
+                    API.get(`/api/profile/${encodeURIComponent(username)}`),
+                    API.get(`/api/applications/user/${encodeURIComponent(username)}`)
+                ]);
                 hideLoader();
 
                 let prefilledSkills = '';
                 let prefilledResume = '';
+                let prefilledPhone = '';
+                let prefilledEmail = Auth.getEmail() || '';
+                let prefilledExp = 0;
+
                 if (profileRes.ok && profileRes.data) {
-                    prefilledSkills = profileRes.data.skills || '';
-                    prefilledResume = profileRes.data.resumeUrl || '';
+                    const prof = profileRes.data;
+                    prefilledSkills = prof.skills || '';
+                    prefilledResume = prof.resumeUrl || '';
+                    prefilledPhone = prof.phone || '';
+                    if (prof.email) prefilledEmail = prof.email;
+
+                    if (prof.experience) {
+                        const parsed = parseInt(prof.experience, 10);
+                        if (!isNaN(parsed) && parsed >= 0) {
+                            prefilledExp = parsed;
+                        } else if (prof.experience.toLowerCase().includes('fresher')) {
+                            prefilledExp = 0;
+                        } else if (prof.experience.includes('1-2')) {
+                            prefilledExp = 1;
+                        } else if (prof.experience.includes('3-5')) {
+                            prefilledExp = 3;
+                        } else if (prof.experience.includes('5+')) {
+                            prefilledExp = 5;
+                        }
+                    }
                 }
 
-                // Attach autofill triggers
+                // Attach autofill triggers to modal form
                 document.getElementById('app-fullName').value = Auth.getFullName() || '';
+                document.getElementById('app-email').value = prefilledEmail;
+                document.getElementById('app-phone').value = prefilledPhone;
                 document.getElementById('app-skills').value = prefilledSkills;
+                document.getElementById('app-experience').value = prefilledExp;
                 document.getElementById('app-resumeUrl').value = prefilledResume;
+
+                // Check if candidate already applied for this job
+                const existingApp = (appsRes.ok && Array.isArray(appsRes.data))
+                    ? appsRes.data.find(a => a.job && a.job.id == jobId)
+                    : null;
+
+                if (existingApp) {
+                    const statusClass = existingApp.status === 'SHORTLISTED' ? 'badge bg-success'
+                        : existingApp.status === 'REJECTED' ? 'badge bg-danger'
+                        : 'badge bg-primary';
+
+                    container.innerHTML = `
+                        <div class="card p-3 border-success-subtle bg-success-subtle mb-3">
+                            <div class="d-flex align-items-center mb-1">
+                                <i class="bi bi-check-circle-fill text-success fs-5 me-2"></i>
+                                <span class="fw-bold text-success-emphasis">Application Submitted</span>
+                            </div>
+                            <p class="small text-muted mb-2">
+                                You have already applied for this position.
+                            </p>
+                            <div class="d-flex justify-content-between align-items-center pt-2 border-top">
+                                <span class="small text-muted">Application Status:</span>
+                                <span class="${statusClass} px-2 py-1">${existingApp.status}</span>
+                            </div>
+                        </div>
+                        <a href="dashboard-seeker.html" class="btn hs-btn-outline w-100">
+                            <i class="bi bi-briefcase me-1"></i> Track in Dashboard
+                        </a>
+                    `;
+                    return;
+                }
 
                 container.innerHTML = `
                     <button class="btn hs-btn-primary w-100 py-2 btn-lg" data-bs-toggle="modal" data-bs-target="#applyModal">
-                        Apply for this Job
+                        <i class="bi bi-send me-1"></i> Apply for this Job
                     </button>
                 `;
             } else if (role === 'EMPLOYER') {
-                if (jobDetails.employerName === Auth.getUsername()) {
+                if (jobDetails && (jobDetails.employerName === Auth.getUsername() || jobDetails.employerName === Auth.getFullName())) {
                     container.innerHTML = `
                         <div class="alert alert-info py-2 mb-3" style="font-size:0.88rem;">
-                            You posted this job.
+                            You posted this job listing.
                         </div>
                         <a href="dashboard-employer.html" class="btn hs-btn-outline w-100">
                             Go to Dashboard
@@ -236,16 +290,22 @@
                     `;
                 } else {
                     container.innerHTML = `
-                        <div class="alert alert-secondary py-2" style="font-size:0.88rem;">
+                        <div class="alert alert-secondary py-2 mb-2" style="font-size:0.88rem;">
                             Logged in as Employer. Only Job Seekers can apply.
                         </div>
+                        <a href="login.html" class="btn btn-sm btn-outline-secondary w-100">
+                            Switch to Job Seeker Account
+                        </a>
                     `;
                 }
             } else if (role === 'ADMIN') {
                 container.innerHTML = `
-                    <div class="alert alert-secondary py-2" style="font-size:0.88rem;">
-                        Logged in as Administrator.
+                    <div class="alert alert-secondary py-2 mb-2" style="font-size:0.88rem;">
+                        Logged in as Administrator. Only Job Seekers can apply.
                     </div>
+                    <a href="login.html" class="btn btn-sm btn-outline-secondary w-100">
+                        Switch to Job Seeker Account
+                    </a>
                 `;
             }
         }
@@ -266,10 +326,7 @@
                 { id: 'app-fullName', name: 'Full Name' },
                 { id: 'app-email', name: 'Email Address' },
                 { id: 'app-phone', name: 'Phone Number' },
-                { id: 'app-skills', name: 'Skills' },
-                { id: 'app-experience', name: 'Experience' },
-                { id: 'app-resumeUrl', name: 'Resume URL' }
-                
+                { id: 'app-skills', name: 'Skills' }
             ])) return;
 
             if (!validateEmail(email)) {
@@ -284,26 +341,22 @@
                 return;
             }
 
+            const expNum = parseInt(experience, 10);
+            const validExperience = isNaN(expNum) || expNum < 0 ? 0 : expNum;
+
             const submitBtn = document.getElementById('submit-app-btn');
             setBtnLoading(submitBtn, true);
-
-            /* Fetch seeker user profile ID to represent seeker.id */
-            const username = Auth.getUsername();
-            const profileRes = await API.get(`/api/profile/${username}`);
-
-            const userId = profileRes.ok ? profileRes.data.userId : null;
 
             const payload = {
                 fullName,
                 email,
                 phone,
                 skills,
-                experience: parseInt(experience, 10),
+                experience: validExperience,
                 resumeUrl,
                 coverLetter,
                 noticePeriod,
-                job: { id: parseInt(jobId, 10) },
-                seeker: userId ? { id: parseInt(userId, 10) } : null
+                jobId: parseInt(jobId, 10)
             };
 
             const res = await API.post('/api/applications', payload);
@@ -317,11 +370,7 @@
                 if (modal) modal.hide();
 
                 /* Re-render actions */
-                document.getElementById('apply-action-area').innerHTML = `
-                    <div class="alert alert-success py-2 mb-0" style="font-size:0.88rem;">
-                        <i class="bi bi-check-circle-fill me-1"></i> Applied successfully!
-                    </div>
-                `;
+                renderActionArea();
             } else {
                 showToast(res.error || 'Failed to submit application', 'error');
             }

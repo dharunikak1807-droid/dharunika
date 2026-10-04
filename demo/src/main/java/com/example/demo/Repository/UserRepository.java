@@ -12,7 +12,11 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     Optional<User> findByUsername(String username);
 
+    Optional<User> findByEmail(String email);
+
     boolean existsByUsername(String username);
+
+    boolean existsByEmail(String email);
 
     long countByRole(Role role);
 
@@ -21,4 +25,6 @@ public interface UserRepository extends JpaRepository<User, Long> {
     List<User> findTop5ByOrderByIdDesc();
 
     List<User> findByRole(Role role);
+
+    Optional<User> findByResetToken(String resetToken);
 }

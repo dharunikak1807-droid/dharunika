@@ -37,8 +37,7 @@ public class ApplicationService {
 
     @Transactional
     public ApplicationResponseDTO apply(ApplyRequest request, String username) {
-        User seeker = userRepository.findByUsername(username)
-                .orElseThrow(() -> new RuntimeException("Seeker user not found"));
+        User seeker = resolveUser(username);
 
         if (request.getJobId() == null) {
             throw new RuntimeException("Job reference is missing");
@@ -53,7 +52,7 @@ public class ApplicationService {
         application.setEmail(request.getEmail());
         application.setPhone(request.getPhone());
         application.setSkills(request.getSkills());
-        application.setExperience(request.getExperience());
+        application.setExperience(request.getExperience() != null ? request.getExperience() : 0);
         application.setResumeUrl(request.getResumeUrl());
         application.setCoverLetter(request.getCoverLetter());
         application.setExpectedSalary(request.getExpectedSalary());
@@ -65,12 +64,25 @@ public class ApplicationService {
 
     @Transactional
     public List<ApplicationResponseDTO> getApplicationsByUser(String username) {
-        User seeker = userRepository.findByUsername(username)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+        User seeker = resolveUser(username);
         return applicationRepository.findBySeekerId(seeker.getId())
                 .stream()
                 .map(this::toResponse)
                 .collect(Collectors.toList());
+    }
+
+    private User resolveUser(String identifier) {
+        if (identifier == null || identifier.isBlank()) {
+            throw new RuntimeException("User identifier is required");
+        }
+        if (identifier.contains("@")) {
+            return userRepository.findByEmail(identifier.trim().toLowerCase())
+                    .orElseGet(() -> userRepository.findByUsername(identifier.trim())
+                            .orElseThrow(() -> new RuntimeException("User not found: " + identifier)));
+        }
+        return userRepository.findByUsername(identifier.trim())
+                .orElseGet(() -> userRepository.findByEmail(identifier.trim().toLowerCase())
+                        .orElseThrow(() -> new RuntimeException("User not found: " + identifier)));
     }
 
     @Transactional

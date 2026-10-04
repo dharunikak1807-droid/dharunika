@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Register — HireSphere</title>
-    <meta name="description" content="Create a new HireSphere account. Register as a Job Seeker or Employer.">
+    <title>HireSphere — Create Account</title>
+    <meta name="description" content="Create a new HireSphere account. Register as a Job Seeker or Recruiter / Employer.">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
     <link href="css/style.css" rel="stylesheet">
@@ -13,96 +13,155 @@
 
     <div id="hs-navbar"></div>
 
-    <div class="hs-auth-bg">
-        <div class="hs-auth-glass" style="max-width:520px;">
-            <div class="hs-auth-logo">
-                <i class="bi bi-person-plus-fill"></i>
+    <div class="hs-auth-wrapper">
+        <div class="hs-auth-card wide">
+            
+            <div class="hs-auth-header">
+                <div class="hs-brand-badge">
+                    <div class="hs-logo-icon me-1"><i class="bi bi-person-plus-fill" style="font-size:1.1rem;"></i></div>
+                    <span>HireSphere Enterprise</span>
+                </div>
+                <h2>Create Account</h2>
+                <p>Join HireSphere to connect with top talent or find your next career opportunity</p>
             </div>
-            <h2>Create Account</h2>
-            <p class="hs-auth-subtitle">Join HireSphere and take your next career step</p>
+
+            <!-- Role Selector Tabs -->
+            <div class="row g-2 mb-4">
+                <div class="col-6">
+                    <div class="hs-role-tab active" id="tab-seeker" onclick="switchRoleTab('JOB_SEEKER')">
+                        <i class="bi bi-person-workspace me-2"></i>Job Seeker
+                    </div>
+                </div>
+                <div class="col-6">
+                    <div class="hs-role-tab" id="tab-recruiter" onclick="switchRoleTab('EMPLOYER')">
+                        <i class="bi bi-building me-2"></i>Recruiter / Employer
+                    </div>
+                </div>
+            </div>
 
             <form id="register-form" onsubmit="handleRegister(event)" novalidate>
-                <div class="mb-3">
-                    <label for="reg-fullName" class="form-label">Full Name</label>
-                    <div class="input-group">
-                        <span class="input-group-text bg-light border-end-0">
-                            <i class="bi bi-person-badge text-muted"></i>
-                        </span>
-                        <input type="text" class="form-control border-start-0 ps-0" id="reg-fullName"
-                               placeholder="Priya Sharma" required>
-                    </div>
-                </div>
+                <input type="hidden" id="reg-role" value="JOB_SEEKER">
 
-                <div class="mb-3">
-                    <label for="reg-username" class="form-label">Username</label>
-                    <div class="input-group">
-                        <span class="input-group-text bg-light border-end-0">
-                            <i class="bi bi-at text-muted"></i>
-                        </span>
-                        <input type="text" class="form-control border-start-0 ps-0" id="reg-username"
-                               placeholder="priya.sharma" autocomplete="username" required>
+                <!-- ════════════════ JOB SEEKER FIELDS ════════════════ -->
+                <div id="section-job-seeker" class="row g-3">
+                    <div class="col-md-6">
+                        <label for="seeker-firstName" class="form-label hs-form-label">First Name *</label>
+                        <input type="text" class="form-control" id="seeker-firstName" placeholder="John" required>
                     </div>
-                </div>
+                    <div class="col-md-6">
+                        <label for="seeker-lastName" class="form-label hs-form-label">Last Name *</label>
+                        <input type="text" class="form-control" id="seeker-lastName" placeholder="Doe" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="seeker-email" class="form-label hs-form-label">Email Address *</label>
+                        <input type="email" class="form-control" id="seeker-email" placeholder="john.doe@gmail.com" autocomplete="email" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="seeker-phone" class="form-label hs-form-label">Mobile Number *</label>
+                        <input type="tel" class="form-control" id="seeker-phone" placeholder="+91 9876543210" required>
+                    </div>
 
-                <div class="mb-3">
-                    <label for="reg-password" class="form-label">Password</label>
-                    <div class="input-group">
-                        <span class="input-group-text bg-light border-end-0">
-                            <i class="bi bi-lock text-muted"></i>
-                        </span>
-                        <input type="password" class="form-control border-start-0 border-end-0 ps-0"
-                               id="reg-password" placeholder="Choose a strong password"
-                               autocomplete="new-password" oninput="checkStrength(this.value)" required>
-                        <button type="button" class="input-group-text bg-light border-start-0 hs-pass-toggle"
-                                id="toggle-reg-password">
-                            <i class="bi bi-eye" id="reg-eye-icon"></i>
-                        </button>
+                    <div class="col-md-6">
+                        <label for="seeker-password" class="form-label hs-form-label">Password *</label>
+                        <input type="password" class="form-control" id="seeker-password" placeholder="At least 8 characters" autocomplete="new-password" required>
                     </div>
-                    <div class="hs-strength-bar mt-1">
-                        <div class="hs-strength-fill" id="strength-fill"></div>
+                    <div class="col-md-6">
+                        <label for="seeker-confirmPwd" class="form-label hs-form-label">Confirm Password *</label>
+                        <input type="password" class="form-control" id="seeker-confirmPwd" placeholder="Re-enter password" autocomplete="new-password" required>
                     </div>
-                    <small id="strength-label" class="text-muted"></small>
-                </div>
 
-                <div class="mb-3">
-                    <label for="reg-role" class="form-label">I want to register as</label>
-                    <div class="input-group">
-                        <span class="input-group-text bg-light border-end-0">
-                            <i class="bi bi-person-gear text-muted"></i>
-                        </span>
-                        <select class="form-select border-start-0" id="reg-role"
-                                onchange="toggleEmployerFields()" required>
-                            <option value="JOB_SEEKER">
-                                Job Seeker — Find my dream job
-                            </option>
-                            <option value="EMPLOYER">
-                                Employer — Hire top talent
-                            </option>
+                    <div class="col-md-6">
+                        <label for="seeker-gender" class="form-label hs-form-label">Gender</label>
+                        <select class="form-select" id="seeker-gender">
+                            <option value="Male">Male</option>
+                            <option value="Female">Female</option>
+                            <option value="Other">Other</option>
+                            <option value="Prefer not to say">Prefer not to say</option>
                         </select>
                     </div>
-                </div>
+                    <div class="col-md-6">
+                        <label for="seeker-dob" class="form-label hs-form-label">Date of Birth</label>
+                        <input type="date" class="form-control" id="seeker-dob">
+                    </div>
 
-                <!-- Employer-only field -->
-                <div class="mb-4 d-none" id="employer-fields">
-                    <label for="reg-companyName" class="form-label">Company Name</label>
-                    <div class="input-group">
-                        <span class="input-group-text bg-light border-end-0">
-                            <i class="bi bi-building text-muted"></i>
-                        </span>
-                        <input type="text" class="form-control border-start-0 ps-0"
-                               id="reg-companyName" placeholder="Acme Corporation">
+                    <div class="col-md-12">
+                        <label for="seeker-address" class="form-label hs-form-label">Address</label>
+                        <input type="text" class="form-control" id="seeker-address" placeholder="City, State, Country">
+                    </div>
+
+                    <div class="col-md-6">
+                        <label for="seeker-education" class="form-label hs-form-label">Education / Degree</label>
+                        <input type="text" class="form-control" id="seeker-education" placeholder="B.Tech Computer Science">
+                    </div>
+                    <div class="col-md-6">
+                        <label for="seeker-experience" class="form-label hs-form-label">Total Experience</label>
+                        <select class="form-select" id="seeker-experience">
+                            <option value="Fresher">Fresher (0 Years)</option>
+                            <option value="1-2 Years">1-2 Years</option>
+                            <option value="3-5 Years">3-5 Years</option>
+                            <option value="5+ Years">5+ Years</option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-12">
+                        <label for="seeker-skills" class="form-label hs-form-label">Skills (Comma separated) *</label>
+                        <input type="text" class="form-control" id="seeker-skills" placeholder="Java, Spring Boot, MySQL, REST APIs" required>
+                    </div>
+
+                    <div class="col-md-12">
+                        <label for="seeker-resume" class="form-label hs-form-label">Resume URL / Upload Link</label>
+                        <input type="url" class="form-control" id="seeker-resume" placeholder="https://drive.google.com/your-resume-cv.pdf">
                     </div>
                 </div>
 
-                <button type="submit" class="btn hs-btn-primary w-100 py-2" id="register-btn">
-                    <i class="bi bi-check-circle me-1"></i> Create Account
+                <!-- ════════════════ RECRUITER FIELDS ════════════════ -->
+                <div id="section-recruiter" class="row g-3 d-none">
+                    <div class="col-md-6">
+                        <label for="rec-companyName" class="form-label hs-form-label">Company Name *</label>
+                        <input type="text" class="form-control" id="rec-companyName" placeholder="TechNova Solutions">
+                    </div>
+                    <div class="col-md-6">
+                        <label for="rec-fullName" class="form-label hs-form-label">Recruiter Name *</label>
+                        <input type="text" class="form-control" id="rec-fullName" placeholder="Sarah Jenkins">
+                    </div>
+
+                    <div class="col-md-6">
+                        <label for="rec-email" class="form-label hs-form-label">Corporate Email Address *</label>
+                        <input type="email" class="form-control" id="rec-email" placeholder="recruiter@technova.com" autocomplete="email">
+                    </div>
+                    <div class="col-md-6">
+                        <label for="rec-phone" class="form-label hs-form-label">Mobile Number *</label>
+                        <input type="tel" class="form-control" id="rec-phone" placeholder="+91 9876543210">
+                    </div>
+
+                    <div class="col-md-6">
+                        <label for="rec-password" class="form-label hs-form-label">Password *</label>
+                        <input type="password" class="form-control" id="rec-password" placeholder="At least 8 characters" autocomplete="new-password">
+                    </div>
+                    <div class="col-md-6">
+                        <label for="rec-confirmPwd" class="form-label hs-form-label">Confirm Password *</label>
+                        <input type="password" class="form-control" id="rec-confirmPwd" placeholder="Re-enter password" autocomplete="new-password">
+                    </div>
+
+                    <div class="col-md-6">
+                        <label for="rec-website" class="form-label hs-form-label">Company Website</label>
+                        <input type="url" class="form-control" id="rec-website" placeholder="https://technova.com">
+                    </div>
+                    <div class="col-md-6">
+                        <label for="rec-address" class="form-label hs-form-label">Company Address</label>
+                        <input type="text" class="form-control" id="rec-address" placeholder="Bangalore, Karnataka">
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-hs-primary-green w-100 mt-4 py-2" id="register-btn">
+                    <i class="bi bi-check-circle me-1"></i> Complete Registration
                 </button>
             </form>
 
-            <p class="text-center mt-3 mb-0" style="font-size:0.9rem;">
-                Already have an account?
-                <a href="login.html" class="fw-semibold">Sign in</a>
-            </p>
+            <div class="text-center mt-3" style="font-size:0.9rem;">
+                <span class="text-muted">Already registered?</span>
+                <a href="login.html" class="fw-bold text-primary ms-1">Sign In</a>
+            </div>
         </div>
     </div>
 
@@ -117,95 +176,139 @@
             if (Auth.isLoggedIn()) {
                 window.location.href = Auth.getDashboardUrl();
             }
-
-            document.getElementById('toggle-reg-password').addEventListener('click', function () {
-                const pwd = document.getElementById('reg-password');
-                const icon = document.getElementById('reg-eye-icon');
-                if (pwd.type === 'password') {
-                    pwd.type = 'text';
-                    icon.className = 'bi bi-eye-slash';
-                } else {
-                    pwd.type = 'password';
-                    icon.className = 'bi bi-eye';
-                }
-            });
         });
 
-        function checkStrength(value) {
-            const fill  = document.getElementById('strength-fill');
-            const label = document.getElementById('strength-label');
-            let strength = 0;
-            if (value.length >= 6)  strength++;
-            if (value.length >= 10) strength++;
-            if (/[A-Z]/.test(value)) strength++;
-            if (/[0-9]/.test(value)) strength++;
-            if (/[^A-Za-z0-9]/.test(value)) strength++;
+        function switchRoleTab(role) {
+            document.getElementById('reg-role').value = role;
 
-            const levels = [
-                { w: '0%',   c: '',          l: '' },
-                { w: '25%',  c: '#e53e3e',   l: '⚠ Weak' },
-                { w: '50%',  c: '#f0a500',   l: '~ Fair' },
-                { w: '75%',  c: '#3a86ff',   l: '✓ Good' },
-                { w: '100%', c: '#2cb67d',   l: '✓ Strong' },
-            ];
-            const s = Math.min(strength, 4);
-            fill.style.width = levels[s].w;
-            fill.style.background = levels[s].c;
-            label.textContent = levels[s].l;
-            label.style.color = levels[s].c;
-        }
+            const tabSeeker = document.getElementById('tab-seeker');
+            const tabRecruiter = document.getElementById('tab-recruiter');
+            const secSeeker = document.getElementById('section-job-seeker');
+            const secRecruiter = document.getElementById('section-recruiter');
 
-        function toggleEmployerFields() {
-            const role = document.getElementById('reg-role').value;
-            const companyFields = document.getElementById('employer-fields');
-            companyFields.classList.toggle('d-none', role !== 'EMPLOYER');
+            if (role === 'JOB_SEEKER') {
+                tabSeeker.classList.add('active');
+                tabRecruiter.classList.remove('active');
+                secSeeker.classList.remove('d-none');
+                secRecruiter.classList.add('d-none');
+            } else {
+                tabRecruiter.classList.add('active');
+                tabSeeker.classList.remove('active');
+                secRecruiter.classList.remove('d-none');
+                secSeeker.classList.add('d-none');
+            }
         }
 
         async function handleRegister(e) {
             e.preventDefault();
 
-            const fullName   = document.getElementById('reg-fullName').value.trim();
-            const username   = document.getElementById('reg-username').value.trim();
-            const password   = document.getElementById('reg-password').value.trim();
-            const role       = document.getElementById('reg-role').value;
-            const companyName = document.getElementById('reg-companyName').value.trim();
+            const role = document.getElementById('reg-role').value;
+            let payload = {};
 
-            const fieldsToValidate = [
-                { id: 'reg-fullName', name: 'Full Name' },
-                { id: 'reg-username', name: 'Username' },
-                { id: 'reg-password', name: 'Password' }
-            ];
+            if (role === 'JOB_SEEKER') {
+                const firstName = document.getElementById('seeker-firstName').value.trim();
+                const lastName  = document.getElementById('seeker-lastName').value.trim();
+                const email     = document.getElementById('seeker-email').value.trim();
+                const phone     = document.getElementById('seeker-phone').value.trim();
+                const password  = document.getElementById('seeker-password').value.trim();
+                const confirmPwd= document.getElementById('seeker-confirmPwd').value.trim();
+                const gender    = document.getElementById('seeker-gender').value;
+                const dob       = document.getElementById('seeker-dob').value;
+                const address   = document.getElementById('seeker-address').value.trim();
+                const education = document.getElementById('seeker-education').value.trim();
+                const exp       = document.getElementById('seeker-experience').value;
+                const skills    = document.getElementById('seeker-skills').value.trim();
+                const resume    = document.getElementById('seeker-resume').value.trim();
 
-            if (role === 'EMPLOYER') {
-                fieldsToValidate.push({ id: 'reg-companyName', name: 'Company Name' });
-            }
+                if (!firstName || !lastName || !email || !phone || !password || !skills) {
+                    showToast('Please fill in all required fields.', 'error');
+                    return;
+                }
 
-            if (!validateRequired(fieldsToValidate)) return;
+                if (!validateEmail(email)) {
+                    showToast('Please enter a valid email address.', 'error');
+                    return;
+                }
 
-            if (password.length < 6) {
-                showToast('Password must be at least 6 characters', 'error');
-                return;
+                if (password.length < 8) {
+                    showToast('Password must be at least 8 characters.', 'error');
+                    return;
+                }
+
+                if (password !== confirmPwd) {
+                    showToast('Passwords do not match.', 'error');
+                    return;
+                }
+
+                payload = {
+                    firstName,
+                    lastName,
+                    email,
+                    phone,
+                    password,
+                    confirmPassword: confirmPwd,
+                    role: 'JOB_SEEKER',
+                    username: email,
+                    address,
+                    companyName: ''
+                };
+            } else {
+                const companyName = document.getElementById('rec-companyName').value.trim();
+                const fullName    = document.getElementById('rec-fullName').value.trim();
+                const email       = document.getElementById('rec-email').value.trim();
+                const phone       = document.getElementById('rec-phone').value.trim();
+                const password    = document.getElementById('rec-password').value.trim();
+                const confirmPwd  = document.getElementById('rec-confirmPwd').value.trim();
+                const website     = document.getElementById('rec-website').value.trim();
+                const address     = document.getElementById('rec-address').value.trim();
+
+                if (!companyName || !fullName || !email || !phone || !password) {
+                    showToast('Please fill in all required recruiter fields.', 'error');
+                    return;
+                }
+
+                if (!validateEmail(email)) {
+                    showToast('Please enter a valid corporate email.', 'error');
+                    return;
+                }
+
+                if (password.length < 8) {
+                    showToast('Password must be at least 8 characters.', 'error');
+                    return;
+                }
+
+                if (password !== confirmPwd) {
+                    showToast('Passwords do not match.', 'error');
+                    return;
+                }
+
+                const names = fullName.split(' ');
+                payload = {
+                    firstName: names[0] || fullName,
+                    lastName: names.slice(1).join(' ') || '',
+                    fullName,
+                    email,
+                    phone,
+                    password,
+                    confirmPassword: confirmPwd,
+                    role: 'EMPLOYER',
+                    username: email,
+                    companyName,
+                    address
+                };
             }
 
             const btn = document.getElementById('register-btn');
             setBtnLoading(btn, true);
 
-            const payload = {
-                username,
-                password,
-                fullName,
-                role,
-                companyName: role === 'EMPLOYER' ? companyName : ''
-            };
-
             const res = await Auth.register(payload);
             setBtnLoading(btn, false);
 
             if (res.ok) {
-                showToast('Account created successfully! Redirecting...', 'success');
+                showToast('Registration successful! Redirecting to login...', 'success');
                 setTimeout(() => {
-                    window.location.href = Auth.getDashboardUrl();
-                }, 800);
+                    window.location.href = 'login.html';
+                }, 1000);
             } else {
                 showToast(res.error || 'Registration failed. Please try again.', 'error');
             }

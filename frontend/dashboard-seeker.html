@@ -16,7 +16,7 @@
     <header class="hs-page-header">
         <div class="container d-flex justify-content-between align-items-center flex-wrap gap-3">
             <div>
-                <h1>Job Seeker Dashboard</h1>
+                <h1>Job Seeker</h1>
                 <p>Track your job applications and manage your professional credentials.</p>
             </div>
             <a href="profile.html" class="btn btn-light hs-btn-primary">
@@ -30,14 +30,14 @@
         <div class="row g-3 mb-4">
             <div class="col-md-6">
                 <div class="hs-stat-card stat-blue">
-                    <div class="hs-stat-icon" style="background:#eef1ff;color:#4361ee;"><i class="bi bi-file-earmark-check"></i></div>
+                    <div class="hs-stat-icon" style="background:#F5EFEB;color:#8D5B4C;"><i class="bi bi-file-earmark-check"></i></div>
                     <div class="hs-stat-number" id="stats-total-apps">0</div>
                     <div class="hs-stat-label">Total Applications Submitted</div>
                 </div>
             </div>
             <div class="col-md-6">
                 <div class="hs-stat-card stat-green">
-                    <div class="hs-stat-icon" style="background:#e8f5e9;color:#2cb67d;"><i class="bi bi-star"></i></div>
+                    <div class="hs-stat-icon" style="background:#EAF0EC;color:#5D8A66;"><i class="bi bi-star"></i></div>
                     <div class="hs-stat-number" id="stats-shortlisted">0</div>
                     <div class="hs-stat-label">Shortlisted Applications</div>
                 </div>
@@ -93,13 +93,13 @@
             if (!Auth.requireRole('JOB_SEEKER')) return;
 
             Auth.renderNavbar();
-            username = Auth.getUsername();
+            username = Auth.getUsername() || Auth.getEmail();
             loadApplications();
         });
 
         async function loadApplications() {
             showLoader();
-            const res = await API.get(`/api/applications/user/${username}`);
+            const res = await API.get(`/api/applications/user/${encodeURIComponent(username)}`);
             hideLoader();
 
             if (!res.ok) {

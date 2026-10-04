@@ -1,6 +1,6 @@
 /**
- * Hirespere — API Client
- * Reusable Fetch API wrapper with JWT token handling.
+ * Uzhavam Enterprise — API Client
+ * Reusable Fetch API wrapper with JWT token handling & Refresh Token support.
  */
 
 const API = {
@@ -11,14 +11,17 @@ const API = {
      */
     async request(endpoint, options = {}) {
         const url = `${BASE_URL}${endpoint}`;
-        const token = localStorage.getItem('hs_token');
+        const token = (typeof Auth !== 'undefined' && Auth.getToken) ? Auth.getToken() : (localStorage.getItem('hs_token') || sessionStorage.getItem('hs_token'));
 
         const headers = {
             'Content-Type': 'application/json',
             ...(options.headers || {})
         };
 
-        if (token) {
+        const isAuthEndpoint = endpoint.startsWith('/api/auth/') ||
+                (endpoint.startsWith('http') && new URL(endpoint).pathname.startsWith('/api/auth/'));
+
+        if (token && !isAuthEndpoint) {
             headers['Authorization'] = `Bearer ${token}`;
         }
 
@@ -43,13 +46,28 @@ const API = {
             }
 
             if (!response.ok) {
-                const errorMsg = (typeof data === 'object' && data.error)
-                    ? data.error
-                    : (typeof data === 'object' && data.message)
-                        ? data.message
+                // If unauthorized or forbidden on a protected API, attempt token refresh once
+                if ((response.status === 401 || response.status === 403) && !isAuthEndpoint && !options._isRetry && typeof Auth !== 'undefined') {
+                    if (Auth.getRefreshToken && Auth.getRefreshToken()) {
+                        const refreshed = await Auth.tryRefreshToken();
+                        if (refreshed) {
+                            return this.request(endpoint, { ...options, _isRetry: true });
+                        }
+                    }
+                }
+
+                let errorMsg = (typeof data === 'object' && data.message)
+                    ? data.message
+                    : (typeof data === 'object' && data.error)
+                        ? data.error
                         : (typeof data === 'string' && data)
                             ? data
                             : `Request failed (${response.status})`;
+
+                if ((response.status === 401 || response.status === 403) && !isAuthEndpoint) {
+                    errorMsg = 'Session expired or unauthorized. Please log in again.';
+                }
+
                 return { ok: false, error: errorMsg, status: response.status };
             }
 
@@ -57,7 +75,7 @@ const API = {
 
         } catch (err) {
             console.error('API Error:', err);
-            return { ok: false, error: 'Network error. Is the backend running on ' + BASE_URL + '?' };
+            return { ok: false, error: 'Network error. Is the backend server running on ' + BASE_URL + '?' };
         }
     },
 
@@ -77,6 +95,13 @@ const API = {
     put(endpoint, body) {
         return this.request(endpoint, {
             method: 'PUT',
+            body: JSON.stringify(body)
+        });
+    },
+
+    patch(endpoint, body) {
+        return this.request(endpoint, {
+            method: 'PATCH',
             body: JSON.stringify(body)
         });
     },

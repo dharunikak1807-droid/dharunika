@@ -3,11 +3,54 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Profile — Hirespere</title>
-    <meta name="description" content="View and update your Hirespere profile details. Keep your skills and resume up to date.">
+    <title>My Profile — HireSphere</title>
+    <meta name="description" content="View and update your HireSphere profile details. Keep your contact info, skills, education, and resume up to date.">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
     <link href="css/style.css" rel="stylesheet">
+    <style>
+        .hs-profile-card {
+            border: 1px solid #E5D8CE;
+            background: #FFFFFF;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 6px 20px rgba(141, 91, 76, 0.08);
+        }
+        .hs-form-label {
+            color: #6E4435 !important;
+            font-weight: 600;
+            font-size: 0.85rem;
+        }
+        .form-control, .form-select {
+            border-color: #E0D3C9;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+        .form-control:focus, .form-select:focus {
+            border-color: #A3745D !important;
+            box-shadow: 0 0 0 3px rgba(163, 116, 93, 0.18) !important;
+        }
+        .input-group-text {
+            background-color: #F8F3EE !important;
+            color: #855946 !important;
+            border-color: #E0D3C9 !important;
+        }
+        .btn-mild-brown {
+            background: linear-gradient(135deg, #9C6F59 0%, #7E513D 100%) !important;
+            color: #FFFFFF !important;
+            border: 1px solid #7E513D !important;
+            font-weight: 600;
+            padding: 0.65rem 1.6rem;
+            border-radius: 8px;
+            box-shadow: 0 6px 16px rgba(126, 81, 61, 0.22);
+            transition: all 0.2s ease;
+        }
+        .btn-mild-brown:hover, .btn-mild-brown:focus {
+            background: linear-gradient(135deg, #8A5F4D 0%, #6D4333 100%) !important;
+            color: #FFFFFF !important;
+            box-shadow: 0 8px 20px rgba(109, 67, 51, 0.32);
+            transform: translateY(-1px);
+        }
+    </style>
 </head>
 <body>
 
@@ -15,61 +58,132 @@
 
     <header class="hs-page-header">
         <div class="container text-center">
-            <h1>Manage Profile</h1>
-            <p>Update your details so employers or candidates can learn more about you.</p>
+            <h1 class="fw-bold"><i class="bi bi-person-lines-fill me-2" style="color: #9C6F59;"></i>Manage Profile</h1>
+            <p class="text-muted mb-0">Keep your personal info, contact details, experience, and professional credentials up to date.</p>
         </div>
     </header>
 
     <main class="container py-4">
         <div class="row justify-content-center">
-            <div class="col-lg-8 col-md-10">
-                <div class="hs-profile-card mb-4">
-                    <div class="hs-profile-banner"></div>
-                    <div class="hs-profile-avatar" id="profile-avatar-char">—</div>
-                    <div class="px-4 pb-4 pt-2 text-center border-bottom">
-                        <h4 class="fw-bold mb-1" id="profile-displayName">Loading Name...</h4>
-                        <p class="text-muted mb-0" id="profile-displayUsername">@username</p>
-                        <span class="badge bg-primary-subtle text-primary-emphasis mt-2 px-3 py-1" id="profile-displayRole">ROLE</span>
+            <div class="col-lg-9 col-md-11">
+                <div class="hs-profile-card mb-4 shadow-sm">
+                    <div class="hs-profile-banner" style="background: linear-gradient(135deg, #C29B85 0%, #A3745D 50%, #855946 100%); height: 120px; border-radius: 16px 16px 0 0;"></div>
+                    <div class="hs-profile-avatar shadow" id="profile-avatar-char" style="width: 80px; height: 80px; font-size: 2.2rem; background: #FAF5F0; color: #855946; border: 3px solid #ffffff; margin-top: -40px; margin-left: 2rem; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800;">—</div>
+                    
+                    <div class="px-4 pb-3 pt-2 border-bottom d-flex justify-content-between align-items-center flex-wrap gap-2">
+                        <div>
+                            <h4 class="fw-bold mb-0" id="profile-displayName">Profile Details</h4>
+                            <p class="text-muted mb-0 small" id="profile-displayUsername">@username</p>
+                        </div>
+                        <span class="badge fs-6 px-3 py-2" id="profile-displayRole" style="background:#F4EBE3; color:#6D4333; border:1px solid #D8C3B5;">ROLE</span>
                     </div>
 
                     <form id="profile-form" onsubmit="handleProfileSubmit(event)" class="p-4" novalidate>
-                        <!-- Common Fields -->
-                        <div class="row g-3">
+                        
+                        <h6 class="fw-bold mb-3" style="color: #6E4435;"><i class="bi bi-person-badge me-2" style="color: #9C6F59;"></i>Personal & Contact Details</h6>
+                        <div class="row g-3 mb-4">
                             <div class="col-md-6">
-                                <label for="prof-fullName" class="form-label">Full Name</label>
+                                <label for="prof-fullName" class="form-label hs-form-label">Full Name *</label>
                                 <input type="text" class="form-control" id="prof-fullName" required>
                             </div>
-                            <div class="col-md-6" id="field-companyName">
-                                <label for="prof-companyName" class="form-label">Company Name</label>
-                                <input type="text" class="form-control" id="prof-companyName" placeholder="Acme Inc.">
+                            <div class="col-md-6">
+                                <label for="prof-email" class="form-label hs-form-label">Email Address</label>
+                                <input type="email" class="form-control bg-light" id="prof-email" readonly>
                             </div>
-                            <div class="col-12">
-                                <label for="prof-about" class="form-label">About / Bio</label>
-                                <textarea class="form-control" id="prof-about" rows="4" placeholder="Tell us about yourself or your company..."></textarea>
+                            <div class="col-md-6">
+                                <label for="prof-phone" class="form-label hs-form-label">Mobile Number</label>
+                                <input type="tel" class="form-control" id="prof-phone" placeholder="+91 9876543210">
                             </div>
+                            <div class="col-md-3">
+                                <label for="prof-gender" class="form-label hs-form-label">Gender</label>
+                                <select class="form-select" id="prof-gender">
+                                    <option value="Male">Male</option>
+                                    <option value="Female">Female</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label for="prof-dob" class="form-label hs-form-label">Date of Birth</label>
+                                <input type="date" class="form-control" id="prof-dob">
+                            </div>
+                        </div>
 
-                            <!-- Job Seeker Fields -->
-                            <div class="col-12" id="seeker-only-fields">
-                                <div class="mb-3">
-                                    <label for="prof-skills" class="form-label">Skills </label>
-                                    <input type="text" class="form-control" id="prof-skills" placeholder="Java, Spring Boot, React, JavaScript">
-                                    <div class="form-text"></div>
+                        <!-- Recruiter / Employer Fields -->
+                        <div id="employer-only-fields" class="d-none">
+                            <h6 class="fw-bold mb-3" style="color: #6E4435;"><i class="bi bi-building me-2" style="color: #9C6F59;"></i>Company Details</h6>
+                            <div class="row g-3 mb-4">
+                                <div class="col-md-6">
+                                    <label for="prof-companyName" class="form-label hs-form-label">Company Name</label>
+                                    <input type="text" class="form-control" id="prof-companyName" placeholder="TechNova Solutions">
                                 </div>
-                                <div class="mb-3">
-                                    <label for="prof-resumeUrl" class="form-label">Resume URL</label>
-                                    <div class="input-group">
-                                        <span class="input-group-text"><i class="bi bi-link-45deg"></i></span>
-                                        <input type="url" class="form-control" id="prof-resumeUrl" placeholder="https://example.com/my-resume.pdf">
-                                    </div>
-                                    <div class="form-text">Link to your resume hosted on Google Drive, Dropbox, or personal website.</div>
+                                <div class="col-md-6">
+                                    <label for="prof-website" class="form-label hs-form-label">Company Website</label>
+                                    <input type="url" class="form-control" id="prof-website" placeholder="https://technova.com">
                                 </div>
                             </div>
                         </div>
 
-                        <div class="mt-4 pt-3 border-top d-flex justify-content-between align-items-center">
-                            <span class="text-muted small">Last updated: Just now</span>
-                            <button type="submit" class="btn hs-btn-primary" id="save-profile-btn">
-                                <i class="bi bi-floppy me-1"></i> Save Changes
+                        <!-- Job Seeker Fields -->
+                        <div id="seeker-only-fields" class="d-none">
+                            <h6 class="fw-bold mb-3" style="color: #6E4435;"><i class="bi bi-mortarboard me-2" style="color: #9C6F59;"></i>Education & Qualifications</h6>
+                            <div class="row g-3 mb-4">
+                                <div class="col-md-6">
+                                    <label for="prof-education" class="form-label hs-form-label">Highest Education</label>
+                                    <input type="text" class="form-control" id="prof-education" placeholder="B.Tech Computer Science / MCA">
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="prof-experience" class="form-label hs-form-label">Experience Level</label>
+                                    <select class="form-select" id="prof-experience">
+                                        <option value="Fresher">Fresher (0 Years)</option>
+                                        <option value="1-2 Years">1-2 Years</option>
+                                        <option value="3-5 Years">3-5 Years</option>
+                                        <option value="5+ Years">5+ Years</option>
+                                    </select>
+                                </div>
+                                <div class="col-12">
+                                    <label for="prof-skills" class="form-label hs-form-label">Key Skills (Comma separated)</label>
+                                    <input type="text" class="form-control" id="prof-skills" placeholder="Java, Spring Boot, MySQL, REST APIs, React">
+                                </div>
+                                <div class="col-12">
+                                    <label for="prof-resumeUrl" class="form-label hs-form-label">Resume Link / URL</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="bi bi-link-45deg"></i></span>
+                                        <input type="url" class="form-control" id="prof-resumeUrl" placeholder="https://drive.google.com/your-resume-cv.pdf">
+                                    </div>
+                                    <div class="form-text">Direct link to hosted CV or Google Drive resume document.</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <h6 class="fw-bold mb-3" style="color: #6E4435;"><i class="bi bi-geo-alt me-2" style="color: #9C6F59;"></i>Address & Location</h6>
+                        <div class="row g-3 mb-4">
+                            <div class="col-12">
+                                <label for="prof-address" class="form-label hs-form-label">Street Address</label>
+                                <input type="text" class="form-control" id="prof-address" placeholder="123 Tech Park, Phase 1">
+                            </div>
+                            <div class="col-md-4">
+                                <label for="prof-district" class="form-label hs-form-label">City / District</label>
+                                <input type="text" class="form-control" id="prof-district" placeholder="Bangalore">
+                            </div>
+                            <div class="col-md-4">
+                                <label for="prof-state" class="form-label hs-form-label">State</label>
+                                <input type="text" class="form-control" id="prof-state" placeholder="Karnataka">
+                            </div>
+                            <div class="col-md-4">
+                                <label for="prof-pincode" class="form-label hs-form-label">Pincode</label>
+                                <input type="text" class="form-control" id="prof-pincode" placeholder="560001">
+                            </div>
+                        </div>
+
+                        <h6 class="fw-bold mb-3" style="color: #6E4435;"><i class="bi bi-card-text me-2" style="color: #9C6F59;"></i>Professional Summary / Bio</h6>
+                        <div class="mb-4">
+                            <textarea class="form-control" id="prof-about" rows="3" placeholder="Briefly describe your career background, goals, or business overview..."></textarea>
+                        </div>
+
+                        <div class="pt-3 border-top d-flex justify-content-between align-items-center">
+                            <span class="text-muted small"><i class="bi bi-shield-check me-1" style="color: #9C6F59;"></i>Verified Profile</span>
+                            <button type="submit" class="btn btn-mild-brown" id="save-profile-btn">
+                                <i class="bi bi-floppy me-1"></i> Save Profile Details
                             </button>
                         </div>
                     </form>
@@ -78,10 +192,9 @@
         </div>
     </main>
 
-    <!-- Footer -->
     <footer class="hs-footer">
-        <div class="container">
-            <p class="mb-0">&copy; 2026 <strong>Hirespere</strong>. All rights reserved.</p>
+        <div class="container text-center">
+            <p class="mb-0">&copy; 2026 <strong>HireSphere</strong>. All rights reserved.</p>
         </div>
     </footer>
 
@@ -98,7 +211,7 @@
             if (!Auth.requireLogin()) return;
 
             Auth.renderNavbar();
-            username = Auth.getUsername();
+            username = Auth.getUsername() || Auth.getEmail();
             currentRole = Auth.getRole();
 
             setupProfileView();
@@ -107,56 +220,87 @@
 
         function setupProfileView() {
             const seekerFields = document.getElementById('seeker-only-fields');
-            const companyField = document.getElementById('field-companyName');
+            const employerFields = document.getElementById('employer-only-fields');
 
             if (currentRole === 'JOB_SEEKER') {
                 seekerFields.classList.remove('d-none');
-                companyField.classList.add('d-none');
+                employerFields.classList.add('d-none');
                 document.getElementById('profile-displayRole').textContent = 'Job Seeker';
             } else if (currentRole === 'EMPLOYER') {
                 seekerFields.classList.add('d-none');
-                companyField.classList.remove('d-none');
-                document.getElementById('profile-displayRole').textContent = 'Employer';
+                employerFields.classList.remove('d-none');
+                document.getElementById('profile-displayRole').textContent = 'Recruiter / Employer';
             } else {
                 seekerFields.classList.add('d-none');
-                companyField.classList.add('d-none');
+                employerFields.classList.add('d-none');
                 document.getElementById('profile-displayRole').textContent = 'Administrator';
             }
 
+            const currentFullName = Auth.getFullName() || username || 'Profile Details';
+            document.getElementById('profile-displayName').textContent = currentFullName;
+            document.getElementById('profile-avatar-char').textContent = currentFullName.charAt(0).toUpperCase();
+
             document.getElementById('profile-displayUsername').textContent = `@${username}`;
             document.getElementById('prof-fullName').value = Auth.getFullName() || '';
+            document.getElementById('prof-email').value = Auth.getEmail() || username || '';
         }
 
         async function loadProfileData() {
             showLoader();
-            const res = await API.get(`/api/profile/${username}`);
+            const res = await API.get(`/api/profile/${encodeURIComponent(username)}`);
             hideLoader();
 
             if (!res.ok) {
-                showToast('Failed to load profile data', 'error');
+                if (res.status === 401 || res.status === 403) {
+                    showToast('Session expired or unauthorized. Please log in again.', 'error');
+                } else {
+                    showToast(res.error || 'Failed to load profile data', 'error');
+                }
                 return;
             }
 
             const data = res.data;
             if (data) {
-                document.getElementById('profile-displayName').textContent = Auth.getFullName() || username;
-                document.getElementById('profile-avatar-char').textContent = (Auth.getFullName() || username).charAt(0).toUpperCase();
+                const name = data.fullName || Auth.getFullName() || username;
+                document.getElementById('profile-displayName').textContent = name;
+                document.getElementById('profile-avatar-char').textContent = name.charAt(0).toUpperCase();
+                document.getElementById('prof-fullName').value = name;
 
                 document.getElementById('prof-about').value = data.about || '';
                 document.getElementById('prof-companyName').value = data.companyName || '';
+                document.getElementById('prof-website').value = data.website || '';
                 document.getElementById('prof-skills').value = data.skills || '';
                 document.getElementById('prof-resumeUrl').value = data.resumeUrl || '';
+                document.getElementById('prof-phone').value = data.phone || '';
+                document.getElementById('prof-address').value = data.address || '';
+                document.getElementById('prof-district').value = data.district || '';
+                document.getElementById('prof-state').value = data.state || '';
+                document.getElementById('prof-pincode').value = data.pincode || '';
+                document.getElementById('prof-education').value = data.education || '';
+                document.getElementById('prof-experience').value = data.experience || 'Fresher';
+                document.getElementById('prof-gender').value = data.gender || 'Male';
+                document.getElementById('prof-dob').value = data.dob || '';
             }
         }
 
         async function handleProfileSubmit(e) {
             e.preventDefault();
 
-            const fullName = document.getElementById('prof-fullName').value.trim();
-            const about = document.getElementById('prof-about').value.trim();
-            const companyName = document.getElementById('prof-companyName').value.trim();
-            const skills = document.getElementById('prof-skills').value.trim();
-            const resumeUrl = document.getElementById('prof-resumeUrl').value.trim();
+            const fullName   = document.getElementById('prof-fullName').value.trim();
+            const phone      = document.getElementById('prof-phone').value.trim();
+            const about      = document.getElementById('prof-about').value.trim();
+            const companyName= document.getElementById('prof-companyName').value.trim();
+            const website    = document.getElementById('prof-website').value.trim();
+            const skills     = document.getElementById('prof-skills').value.trim();
+            const resumeUrl  = document.getElementById('prof-resumeUrl').value.trim();
+            const address    = document.getElementById('prof-address').value.trim();
+            const district   = document.getElementById('prof-district').value.trim();
+            const state      = document.getElementById('prof-state').value.trim();
+            const pincode    = document.getElementById('prof-pincode').value.trim();
+            const education  = document.getElementById('prof-education').value.trim();
+            const experience = document.getElementById('prof-experience').value;
+            const gender     = document.getElementById('prof-gender').value;
+            const dob        = document.getElementById('prof-dob').value;
 
             if (!validateRequired([{ id: 'prof-fullName', name: 'Full Name' }])) return;
 
@@ -167,21 +311,34 @@
                 about,
                 skills: currentRole === 'JOB_SEEKER' ? skills : '',
                 resumeUrl: currentRole === 'JOB_SEEKER' ? resumeUrl : '',
-                companyName: currentRole === 'EMPLOYER' ? companyName : ''
+                companyName: currentRole === 'EMPLOYER' ? companyName : '',
+                website,
+                phone,
+                address,
+                district,
+                state,
+                pincode,
+                education,
+                experience,
+                gender,
+                dob
             };
 
-            /* PUT /api/profile/{username}?fullName={fullName} */
-            const res = await API.put(`/api/profile/${username}?fullName=${encodeURIComponent(fullName)}`, payload);
+            const res = await API.put(`/api/profile/${encodeURIComponent(username)}?fullName=${encodeURIComponent(fullName)}`, payload);
             setBtnLoading(btn, false);
 
             if (res.ok) {
                 showToast('Profile updated successfully!', 'success');
-                /* Update cache */
                 localStorage.setItem('hs_fullName', fullName);
+                sessionStorage.setItem('hs_fullName', fullName);
                 setupProfileView();
                 loadProfileData();
             } else {
-                showToast(res.error || 'Failed to update profile', 'error');
+                if (res.status === 401 || res.status === 403) {
+                    showToast('Session expired. Please log in again.', 'error');
+                } else {
+                    showToast(res.error || 'Failed to update profile', 'error');
+                }
             }
         }
     </script>

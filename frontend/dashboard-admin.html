@@ -20,7 +20,7 @@
         <aside class="hs-admin-sidebar">
             <div class="sidebar-brand">
                 <div class="d-flex align-items-center gap-2 mb-1">
-                    <div style="width:32px;height:32px;background:linear-gradient(135deg,#4361ee,#7b2ff7);border-radius:8px;display:flex;align-items:center;justify-content:center;">
+                    <div style="width:32px;height:32px;background:linear-gradient(135deg,#8D5B4C,#6F4235);border-radius:8px;display:flex;align-items:center;justify-content:center;">
                         <i class="bi bi-shield-check text-white" style="font-size:0.9rem;"></i>
                     </div>
                     <span class="text-white fw-bold">Admin Console</span>
@@ -73,7 +73,7 @@
             <div class="row g-3 mb-4" id="stats-row">
                 <div class="col-xl col-md-4 col-sm-6">
                     <div class="hs-stat-card stat-blue text-center">
-                        <div class="hs-stat-icon" style="background:#eef1ff;color:#4361ee;">
+                        <div class="hs-stat-icon" style="background:#F5EFEB;color:#8D5B4C;">
                             <i class="bi bi-people-fill"></i>
                         </div>
                         <div class="hs-stat-number" id="adm-users">—</div>
@@ -82,7 +82,7 @@
                 </div>
                 <div class="col-xl col-md-4 col-sm-6">
                     <div class="hs-stat-card stat-green text-center">
-                        <div class="hs-stat-icon" style="background:#e8f5e9;color:#2cb67d;">
+                        <div class="hs-stat-icon" style="background:#EAF0EC;color:#5D8A66;">
                             <i class="bi bi-building-fill"></i>
                         </div>
                         <div class="hs-stat-number" id="adm-employers">—</div>
@@ -91,7 +91,7 @@
                 </div>
                 <div class="col-xl col-md-4 col-sm-6">
                     <div class="hs-stat-card stat-orange text-center">
-                        <div class="hs-stat-icon" style="background:#fff3e0;color:#f0a500;">
+                        <div class="hs-stat-icon" style="background:#FDF4E7;color:#D48C46;">
                             <i class="bi bi-person-workspace"></i>
                         </div>
                         <div class="hs-stat-number" id="adm-seekers">—</div>
@@ -100,7 +100,7 @@
                 </div>
                 <div class="col-xl col-md-4 col-sm-6">
                     <div class="hs-stat-card stat-purple text-center">
-                        <div class="hs-stat-icon" style="background:#f3e5f5;color:#7b2ff7;">
+                        <div class="hs-stat-icon" style="background:#F5EFEB;color:#A87665;">
                             <i class="bi bi-briefcase-fill"></i>
                         </div>
                         <div class="hs-stat-number" id="adm-jobs-total">—</div>
@@ -109,7 +109,7 @@
                 </div>
                 <div class="col-xl col-md-4 col-sm-6">
                     <div class="hs-stat-card stat-teal text-center">
-                        <div class="hs-stat-icon" style="background:#e3f2fd;color:#3a86ff;">
+                        <div class="hs-stat-icon" style="background:#EBF1F5;color:#6B8E9F;">
                             <i class="bi bi-send-fill"></i>
                         </div>
                         <div class="hs-stat-number" id="adm-apps-total">—</div>
@@ -118,7 +118,7 @@
                 </div>
                 <div class="col-xl col-md-4 col-sm-6">
                     <div class="hs-stat-card stat-green text-center">
-                        <div class="hs-stat-icon" style="background:#e8f5e9;color:#2cb67d;">
+                        <div class="hs-stat-icon" style="background:#EAF0EC;color:#5D8A66;">
                             <i class="bi bi-check-circle-fill"></i>
                         </div>
                         <div class="hs-stat-number" id="adm-jobs-active">—</div>
@@ -268,7 +268,7 @@
                     labels: ['Employers', 'Job Seekers', 'Admins'],
                     datasets: [{
                         data: [employers, seekers, admins],
-                        backgroundColor: ['#2cb67d', '#4361ee', '#e53e3e'],
+                        backgroundColor: ['#5D8A66', '#8D5B4C', '#C85A54'],
                         borderWidth: 2,
                         borderColor: '#fff'
                     }]
@@ -297,12 +297,12 @@
                             s.totalJobsPosted, s.activeJobs, s.totalApplications
                         ],
                         backgroundColor: [
-                            '#4361ee88','#2cb67d88','#f0a50088',
-                            '#7b2ff788','#3a86ff88','#e91e6388'
+                            '#8D5B4C88','#5D8A6688','#D48C4688',
+                            '#A8766588','#6B8E9F88','#C85A5488'
                         ],
                         borderColor: [
-                            '#4361ee','#2cb67d','#f0a500',
-                            '#7b2ff7','#3a86ff','#e91e63'
+                            '#8D5B4C','#5D8A66','#D48C46',
+                            '#A87665','#6B8E9F','#C85A54'
                         ],
                         borderWidth: 2,
                         borderRadius: 6
@@ -324,9 +324,9 @@
         }
 
         const ROLE_COLORS = {
-            'ADMIN': { bg: '#fce4ec', color: '#c2185b', icon: 'shield-check' },
-            'EMPLOYER': { bg: '#e8f5e9', color: '#2e7d32', icon: 'building' },
-            'JOB_SEEKER': { bg: '#e3f2fd', color: '#1565c0', icon: 'person-workspace' }
+            'ADMIN': { bg: '#F5EFEB', color: '#8D5B4C', icon: 'shield-check' },
+            'EMPLOYER': { bg: '#EAF0EC', color: '#5D8A66', icon: 'building' },
+            'JOB_SEEKER': { bg: '#EBF1F5', color: '#6B8E9F', icon: 'person-workspace' }
         };
 
         function renderRecentUsers(users) {
@@ -365,7 +365,7 @@
             }
             el.innerHTML = jobs.map(j => `
                 <div class="hs-activity-item">
-                    <div class="hs-activity-avatar" style="background:#eef1ff;color:#4361ee;">
+                    <div class="hs-activity-avatar" style="background:#F5EFEB;color:#8D5B4C;">
                         <i class="bi bi-briefcase"></i>
                     </div>
                     <div class="hs-activity-info">

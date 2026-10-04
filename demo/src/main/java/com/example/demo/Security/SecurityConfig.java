@@ -36,15 +36,27 @@ public class SecurityConfig {
         this.jwtAuthFilter = jwtAuthFilter;
     }
 
+    /**
+     * UserDetailsService that resolves by email first (Uzhavam), then by username (HireSphere legacy).
+     * This allows both existing and new users to authenticate.
+     */
     @Bean
     public UserDetailsService userDetailsService() {
-        return username -> userRepository.findByUsername(username)
-                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+        return identifier -> {
+            // If identifier looks like an email, try email lookup first
+            if (identifier != null && identifier.contains("@")) {
+                var byEmail = userRepository.findByEmail(identifier.toLowerCase());
+                if (byEmail.isPresent()) return byEmail.get();
+            }
+            // Fall back to username lookup (backward compatible with HireSphere)
+            return userRepository.findByUsername(identifier)
+                    .orElseThrow(() -> new UsernameNotFoundException("No account found with this identifier: " + identifier));
+        };
     }
 
     @Bean
     public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
+        return new BCryptPasswordEncoder(12);
     }
 
     @Bean
@@ -78,13 +90,33 @@ public class SecurityConfig {
 
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+
+                        // Public auth endpoints
                         .requestMatchers("/api/auth/**").permitAll()
+
+                        // Public job browsing & profile
                         .requestMatchers(HttpMethod.GET, "/api/jobs/**").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/profile/**").permitAll()
+                        .requestMatchers("/api/profile/**").permitAll()
+
+                        // Role-based access for existing HireSphere roles
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .requestMatchers("/api/employer/**").hasRole("EMPLOYER")
                         .requestMatchers("/api/job_seeker/**").hasRole("JOB_SEEKER")
+
+                        // Uzhavam roles — all have authenticated access by default
+                        .requestMatchers("/api/farmer/**").hasRole("FARMER")
+                        .requestMatchers("/api/machinery/**").hasRole("MACHINERY_OWNER")
+                        .requestMatchers("/api/buyer/**").hasRole("BUYER")
+                        .requestMatchers("/api/transport/**").hasRole("TRANSPORT_PROVIDER")
+
                         .anyRequest().authenticated()
+                )
+                .exceptionHandling(ex -> ex
+                        .authenticationEntryPoint((request, response, authException) -> {
+                            response.setStatus(jakarta.servlet.http.HttpServletResponse.SC_UNAUTHORIZED);
+                            response.setContentType("application/json");
+                            response.getWriter().write("{\"status\":401,\"error\":\"Unauthorized\",\"message\":\"Session expired or invalid token. Please log in again.\"}");
+                        })
                 );
 
         return http.build();
@@ -93,7 +125,6 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        // Allow all origins using pattern (works with credentials)
         configuration.setAllowedOrigins(Arrays.asList(
                 "http://localhost:5500",
                 "http://127.0.0.1:5500",

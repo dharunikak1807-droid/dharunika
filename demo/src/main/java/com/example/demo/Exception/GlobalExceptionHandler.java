@@ -1,69 +1,98 @@
 package com.example.demo.Exception;
 
-
+import java.time.LocalDateTime;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 import org.springframework.http.HttpStatus;
-import com.example.demo.dto.ErrorResponseDTO;
 import org.springframework.http.ResponseEntity;
-import org.springframework.lang.NonNull;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.DisabledException;
+import org.springframework.security.authentication.LockedException;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import jakarta.servlet.http.HttpServletRequest;
+
+/**
+ * Global exception handler — returns structured JSON error responses
+ * with professional, user-friendly messages.
+ */
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    @ExceptionHandler(ResourceNotFoundException.class)
-    public ResponseEntity<ErrorResponseDTO> handleResourceNotFound(ResourceNotFoundException ex) {
-        return buildErrorResponse(ex.getMessage(), HttpStatus.NOT_FOUND);
+    @ExceptionHandler(BadCredentialsException.class)
+    public ResponseEntity<Map<String, Object>> handleBadCredentials(
+            BadCredentialsException ex, HttpServletRequest request) {
+        return errorResponse(HttpStatus.UNAUTHORIZED,
+                "Invalid email or password.",
+                request.getRequestURI());
     }
 
-    @ExceptionHandler(UnauthorizedException.class)
-    public ResponseEntity<ErrorResponseDTO> handleUnauthorized(UnauthorizedException ex) {
-        return buildErrorResponse(ex.getMessage(), HttpStatus.FORBIDDEN);
+    @ExceptionHandler(UsernameNotFoundException.class)
+    public ResponseEntity<Map<String, Object>> handleUserNotFound(
+            UsernameNotFoundException ex, HttpServletRequest request) {
+        return errorResponse(HttpStatus.UNAUTHORIZED,
+                "No account found with this email.",
+                request.getRequestURI());
     }
 
-    @ExceptionHandler(org.springframework.security.core.AuthenticationException.class)
-    public ResponseEntity<ErrorResponseDTO> handleAuthException(org.springframework.security.core.AuthenticationException ex) {
-        String message = ex.getMessage();
-        if (ex instanceof org.springframework.security.authentication.BadCredentialsException) {
-            message = "Invalid username or password.";
-        } else if (ex instanceof org.springframework.security.authentication.LockedException) {
-            message = "Your account has been blocked. Please contact system admin.";
-        } else if (ex instanceof org.springframework.security.authentication.DisabledException) {
-            message = "Your account is disabled.";
-        }
-        return buildErrorResponse(message, HttpStatus.UNAUTHORIZED);
+    @ExceptionHandler(LockedException.class)
+    public ResponseEntity<Map<String, Object>> handleLocked(
+            LockedException ex, HttpServletRequest request) {
+        return errorResponse(HttpStatus.UNAUTHORIZED,
+                "Your account is temporarily locked due to multiple failed attempts. Please try again in 15 minutes.",
+                request.getRequestURI());
     }
 
-    @ExceptionHandler(org.springframework.security.core.userdetails.UsernameNotFoundException.class)
-    public ResponseEntity<ErrorResponseDTO> handleUsernameNotFound(
-            org.springframework.security.core.userdetails.UsernameNotFoundException ex) {
-        return buildErrorResponse("Invalid username or password.", HttpStatus.UNAUTHORIZED);
+    @ExceptionHandler(DisabledException.class)
+    public ResponseEntity<Map<String, Object>> handleDisabled(
+            DisabledException ex, HttpServletRequest request) {
+        return errorResponse(HttpStatus.UNAUTHORIZED,
+                "Your account has been disabled. Please contact the administrator.",
+                request.getRequestURI());
     }
 
     @ExceptionHandler(RuntimeException.class)
-    public ResponseEntity<ErrorResponseDTO> handleRuntimeException(RuntimeException ex) {
-        String msg = ex.getMessage() != null ? ex.getMessage() : "An error occurred";
-        HttpStatus status;
-        if (msg.contains("already exists") || msg.contains("already applied")) {
-            status = HttpStatus.CONFLICT;       // 409 — duplicate
-        } else if (msg.toLowerCase().contains("not found")) {
-            status = HttpStatus.NOT_FOUND;      // 404
-        } else if (msg.contains("blocked")) {
-            status = HttpStatus.FORBIDDEN;      // 403
-        } else {
-            status = HttpStatus.BAD_REQUEST;    // 400
+    public ResponseEntity<Map<String, Object>> handleRuntime(
+            RuntimeException ex, HttpServletRequest request) {
+        String msg = ex.getMessage();
+        if (msg != null) {
+            if (msg.contains("Email already") || msg.contains("already registered")) {
+                return errorResponse(HttpStatus.CONFLICT,
+                        "An account with this email already exists.", request.getRequestURI());
+            }
+            if (msg.contains("Username already")) {
+                return errorResponse(HttpStatus.CONFLICT,
+                        "Username already taken. Please choose another.", request.getRequestURI());
+            }
+            if (msg.contains("Invalid Role")) {
+                return errorResponse(HttpStatus.BAD_REQUEST,
+                        "Invalid role selected.", request.getRequestURI());
+            }
+            if (msg.contains("Invalid or expired reset token")) {
+                return errorResponse(HttpStatus.BAD_REQUEST,
+                        "Invalid or expired password reset link. Please request a new one.", request.getRequestURI());
+            }
+            if (msg.contains("Current password is incorrect")) {
+                return errorResponse(HttpStatus.BAD_REQUEST,
+                        "Current password is incorrect.", request.getRequestURI());
+            }
         }
-        return buildErrorResponse(msg, status);
+        return errorResponse(HttpStatus.BAD_REQUEST,
+                msg != null ? msg : "An unexpected error occurred. Please try again.",
+                request.getRequestURI());
     }
 
-    private ResponseEntity<com.example.demo.dto.ErrorResponseDTO> buildErrorResponse(String message, @NonNull HttpStatus status) {
-        com.example.demo.dto.ErrorResponseDTO errorResponse = new com.example.demo.dto.ErrorResponseDTO();
-        errorResponse.setTimestamp(java.time.Instant.now());
-        errorResponse.setStatus(status.value());
-        // Set BOTH error and message to the actual message so frontend can read either field
-        errorResponse.setError(message);
-        errorResponse.setMessage(message);
-        return new ResponseEntity<>(errorResponse, status);
+    private ResponseEntity<Map<String, Object>> errorResponse(
+            HttpStatus status, String message, String path) {
+        Map<String, Object> body = new LinkedHashMap<>();
+        body.put("timestamp", LocalDateTime.now().toString());
+        body.put("status", status.value());
+        body.put("error", status.getReasonPhrase());
+        body.put("message", message);
+        body.put("path", path);
+        return ResponseEntity.status(status).body(body);
     }
 }

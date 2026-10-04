@@ -19,7 +19,7 @@
         <aside class="hs-admin-sidebar">
             <div class="sidebar-brand">
                 <div class="d-flex align-items-center gap-2 mb-1">
-                    <div style="width:32px;height:32px;background:linear-gradient(135deg,#4361ee,#7b2ff7);border-radius:8px;display:flex;align-items:center;justify-content:center;">
+                    <div style="width:32px;height:32px;background:linear-gradient(135deg,#8D5B4C,#6F4235);border-radius:8px;display:flex;align-items:center;justify-content:center;">
                         <i class="bi bi-shield-check text-white" style="font-size:0.9rem;"></i>
                     </div>
                     <span class="text-white fw-bold">Admin Console</span>
@@ -56,9 +56,13 @@
             <div class="hs-search-bar d-flex gap-2 flex-wrap mb-3">
                 <input type="text" class="form-control" id="search-users"
                        placeholder="Search by name, username, or role..." oninput="filterUsers()">
-                <select class="form-select" style="max-width:160px;" id="role-filter" onchange="filterUsers()">
+                <select class="form-select" style="max-width:180px;" id="role-filter" onchange="filterUsers()">
                     <option value="">All Roles</option>
                     <option value="ADMIN">Admin</option>
+                    <option value="FARMER">Farmer</option>
+                    <option value="MACHINERY_OWNER">Machinery Owner</option>
+                    <option value="BUYER">Buyer</option>
+                    <option value="TRANSPORT_PROVIDER">Transport Provider</option>
                     <option value="EMPLOYER">Employer</option>
                     <option value="JOB_SEEKER">Job Seeker</option>
                 </select>
@@ -123,9 +127,13 @@
                         <div class="mb-3">
                             <label class="form-label">Role</label>
                             <select class="form-select" id="u-role" required>
+                                <option value="ADMIN">Admin</option>
+                                <option value="FARMER">Farmer</option>
+                                <option value="MACHINERY_OWNER">Machinery Owner</option>
+                                <option value="BUYER">Buyer</option>
+                                <option value="TRANSPORT_PROVIDER">Transport Provider</option>
                                 <option value="JOB_SEEKER">Job Seeker</option>
                                 <option value="EMPLOYER">Employer</option>
-                                <option value="ADMIN">Admin</option>
                             </select>
                         </div>
                         <div class="mb-3">
@@ -192,9 +200,13 @@
         }
 
         const ROLE_STYLE = {
-            ADMIN:      { cls: 'role-badge-admin',    label: 'Admin',      icon: 'shield-check' },
-            EMPLOYER:   { cls: 'role-badge-employer', label: 'Employer',   icon: 'building' },
-            JOB_SEEKER: { cls: 'role-badge-seeker',   label: 'Job Seeker', icon: 'person-workspace' }
+            ADMIN:              { cls: 'role-badge-admin',    label: 'Admin',              icon: 'shield-check' },
+            FARMER:             { cls: 'role-badge-employer', label: 'Farmer',             icon: 'flower1' },
+            MACHINERY_OWNER:    { cls: 'role-badge-employer', label: 'Machinery Owner',    icon: 'truck' },
+            BUYER:              { cls: 'role-badge-seeker',   label: 'Buyer',              icon: 'cart3' },
+            TRANSPORT_PROVIDER: { cls: 'role-badge-admin',    label: 'Transport Provider', icon: 'box-seam' },
+            EMPLOYER:           { cls: 'role-badge-employer', label: 'Employer',           icon: 'building' },
+            JOB_SEEKER:         { cls: 'role-badge-seeker',   label: 'Job Seeker',         icon: 'person-workspace' }
         };
 
         function renderUsers(users) {
@@ -214,11 +226,16 @@
                     ? '<span class="badge bg-danger ms-1" style="font-size:0.68rem;">Blocked</span>'
                     : '<span class="badge bg-success ms-1" style="font-size:0.68rem;">Active</span>';
 
+                const companyInfo = (u.role === 'EMPLOYER' && u.profile && u.profile.companyName)
+                    ? `<div class="text-muted small" style="font-size:0.75rem;"><i class="bi bi-building me-1"></i>${escapeHtml(u.profile.companyName)}</div>`
+                    : '';
+
                 return `
                 <tr>
                     <td class="text-muted" style="font-size:0.82rem;">${u.id}</td>
                     <td>
                         <div class="fw-semibold">${escapeHtml(u.fullName || '—')}</div>
+                        ${companyInfo}
                     </td>
                     <td class="text-muted">@${escapeHtml(u.username)}</td>
                     <td>
@@ -266,6 +283,7 @@
             document.getElementById('u-username').value   = u.username || '';
             document.getElementById('u-username').readOnly = true;
             document.getElementById('u-role').value       = u.role || 'JOB_SEEKER';
+            document.getElementById('u-company').value    = (u.profile && u.profile.companyName) ? u.profile.companyName : '';
             document.getElementById('u-password').value   = '';
             document.getElementById('u-password-hint').textContent = 'Leave blank to keep current password.';
 

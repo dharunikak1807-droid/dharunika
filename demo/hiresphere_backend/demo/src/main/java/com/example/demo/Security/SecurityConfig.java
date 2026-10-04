@@ -108,7 +108,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/machinery/**").hasRole("MACHINERY_OWNER")
                         .requestMatchers("/api/buyer/**").hasRole("BUYER")
                         .requestMatchers("/api/transport/**").hasRole("TRANSPORT_PROVIDER")
-
+                        .requestMatchers("/").permitAll()
                         .anyRequest().authenticated()
                 )
                 .exceptionHandling(ex -> ex
